@@ -1,0 +1,105 @@
+[
+  {
+    "id": "Gamer",
+    "name": "Gamer",
+    "description": "High-performance gaming and streaming",
+    "keywords": [
+      "gaming",
+      "game",
+      "FPS",
+      "streaming",
+      "discord",
+      "twitch",
+      "steam",
+      "xbox",
+      "playstation",
+      "competitive",
+      "esports",
+      "multiplayer"
+    ],
+    "icon": "Gamepad2",
+    "color": "#10b981"
+  },
+  {
+    "id": "Student",
+    "name": "Student/Educator",
+    "description": "Learning, research, and collaboration",
+    "keywords": [
+      "school",
+      "college",
+      "university",
+      "research",
+      "homework",
+      "assignments",
+      "study",
+      "notes",
+      "education",
+      "learning",
+      "student",
+      "teacher"
+    ],
+    "icon": "GraduationCap",
+    "color": "#3b82f6"
+  },
+  {
+    "id": "Professional",
+    "name": "Professional/Business",
+    "description": "Work, productivity, and collaboration",
+    "keywords": [
+      "work",
+      "office",
+      "productivity",
+      "spreadsheets",
+      "presentations",
+      "video calls",
+      "meetings",
+      "email",
+      "business",
+      "corporate",
+      "professional"
+    ],
+    "icon": "Briefcase",
+    "color": "#6366f1"
+  },
+  {
+    "id": "Creator",
+    "name": "Content Creator",
+    "description": "Video editing, design, and media production",
+    "keywords": [
+      "video editing",
+      "photo editing",
+      "graphic design",
+      "music production",
+      "streaming",
+      "youtube",
+      "social media",
+      "photoshop",
+      "premiere",
+      "creative",
+      "design",
+      "art"
+    ],
+    "icon": "Palette",
+    "color": "#8b5cf6"
+  },
+  {
+    "id": "Casual",
+    "name": "Casual/Home User",
+    "description": "Web browsing, media, and everyday tasks",
+    "keywords": [
+      "email",
+      "web browsing",
+      "photos",
+      "videos",
+      "social media",
+      "shopping",
+      "family",
+      "browsing",
+      "internet",
+      "casual",
+      "home"
+    ],
+    "icon": "Home",
+    "color": "#64748b"
+  }
+]

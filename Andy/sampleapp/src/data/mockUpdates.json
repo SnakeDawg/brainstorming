@@ -1,0 +1,57 @@
+[
+  {
+    "id": "1",
+    "name": "Security Update KB5034441",
+    "type": "Security",
+    "priority": "critical",
+    "size": "523 MB",
+    "description": "Critical security update addressing vulnerabilities in Windows Defender and system core components",
+    "requiresRestart": true,
+    "installed": false,
+    "releaseDate": "2024-01-10"
+  },
+  {
+    "id": "2",
+    "name": "NVIDIA Graphics Driver",
+    "type": "Driver",
+    "priority": "recommended",
+    "size": "712 MB",
+    "description": "Updated graphics driver with performance improvements and bug fixes for RTX series GPUs",
+    "requiresRestart": true,
+    "installed": false,
+    "releaseDate": "2024-01-08"
+  },
+  {
+    "id": "3",
+    "name": "BIOS Update 2.4.1",
+    "type": "Firmware",
+    "priority": "optional",
+    "size": "15 MB",
+    "description": "BIOS update with improved system stability and support for newer hardware",
+    "requiresRestart": true,
+    "installed": false,
+    "releaseDate": "2024-01-05"
+  },
+  {
+    "id": "4",
+    "name": "Intel Wi-Fi Driver Update",
+    "type": "Driver",
+    "priority": "recommended",
+    "size": "45 MB",
+    "description": "Wireless network driver update improving connection stability and speed",
+    "requiresRestart": false,
+    "installed": false,
+    "releaseDate": "2024-01-12"
+  },
+  {
+    "id": "5",
+    "name": "Windows Feature Update",
+    "type": "Feature",
+    "priority": "optional",
+    "size": "3.2 GB",
+    "description": "Windows 11 23H2 feature update with new productivity features and UI improvements",
+    "requiresRestart": true,
+    "installed": false,
+    "releaseDate": "2024-01-01"
+  }
+]
