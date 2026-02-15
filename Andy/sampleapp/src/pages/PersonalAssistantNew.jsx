@@ -83,8 +83,10 @@ const PersonalAssistant = () => {
   }, [messages]);
 
   // Handle initial query from navigation
+  const hasHandledInitialQuery = useRef(false);
   useEffect(() => {
-    if (location.state?.initialQuery) {
+    if (location.state?.initialQuery && !hasHandledInitialQuery.current) {
+      hasHandledInitialQuery.current = true;
       handleSendMessage(location.state.initialQuery);
     }
   }, [location.state]);
@@ -94,7 +96,7 @@ const PersonalAssistant = () => {
     if (!messageText.trim() && attachedFiles.length === 0) return;
 
     const userMessage = {
-      id: messages.length + 1,
+      id: Date.now(),
       sender: 'user',
       content: messageText,
       files: attachedFiles,
@@ -116,7 +118,7 @@ const PersonalAssistant = () => {
       ];
 
       const aiMessage = {
-        id: messages.length + 2,
+        id: Date.now(),
         sender: 'ai',
         content: responses[Math.floor(Math.random() * responses.length)],
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
