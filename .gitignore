@@ -41,3 +41,7 @@ tmpclaude-*
 
 # Local config
 *.local
+
+# Python
+__pycache__/
+*.pyc

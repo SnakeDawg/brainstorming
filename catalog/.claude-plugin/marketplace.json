@@ -1,0 +1,21 @@
+{
+  "marketplace": {
+    "name": "brainstorming",
+    "description": "Agents & Skills Catalog — reusable Claude Code subagents, skills, hooks, and slash commands.",
+    "homepage": "https://github.com/snakedawg/brainstorming"
+  },
+  "plugins": {
+    "common-toolkit": {
+      "name": "common-toolkit",
+      "description": "Common skills usable by the main session or any subagent: markdown-to-HTML conversion and a skill-creator validator.",
+      "version": "0.1.0",
+      "source": "./plugins/common-toolkit"
+    },
+    "review-team": {
+      "name": "review-team",
+      "description": "A team of code-review subagents (security, perf, test coverage) plus a subagent-only triage skill and a /review-pr command.",
+      "version": "0.1.0",
+      "source": "./plugins/review-team"
+    }
+  }
+}

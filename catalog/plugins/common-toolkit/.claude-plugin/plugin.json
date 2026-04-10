@@ -1,0 +1,15 @@
+{
+  "name": "common-toolkit",
+  "version": "0.1.0",
+  "description": "Common skills, commands, and hooks usable by the main session or any subagent.",
+  "author": {
+    "name": "Brainstorming Catalog"
+  },
+  "homepage": "https://github.com/snakedawg/brainstorming",
+  "repository": "https://github.com/snakedawg/brainstorming",
+  "license": "MIT",
+  "keywords": ["skills", "common", "validator", "markdown", "html"],
+  "skills": "./skills/",
+  "commands": "./commands/",
+  "hooks": "./hooks/hooks.json"
+}

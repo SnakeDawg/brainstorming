@@ -1,0 +1,15 @@
+{
+  "name": "review-team",
+  "version": "0.1.0",
+  "description": "A team of code-review subagents (security, perf, test coverage) plus a subagent-only triage skill and a /review-pr coordinator command.",
+  "author": {
+    "name": "Brainstorming Catalog"
+  },
+  "homepage": "https://github.com/snakedawg/brainstorming",
+  "repository": "https://github.com/snakedawg/brainstorming",
+  "license": "MIT",
+  "keywords": ["review", "subagents", "team", "security", "performance"],
+  "agents": "./agents/",
+  "skills": "./skills/",
+  "commands": "./commands/"
+}
