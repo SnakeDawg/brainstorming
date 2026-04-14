@@ -5,6 +5,9 @@ dedicated_skills:
   - ./skills/format-greeting
 shared_skills:
   - ../../skills/shared/read-file
+improvement_agent: ../../agents/improver
+tests: ./tests.md
+rubric: ./rubric.md
 ---
 
 # greeter
@@ -53,3 +56,21 @@ Input: `"./names/ada.txt"` (contents: `Ada Lovelace`)
 Add more dedicated skills under `./skills/` or reference additional entries
 from `../../skills/shared/`. Do not duplicate shared logic inside this
 agent's folder — that's what `skills/shared/` is for.
+
+## Self-improvement participation
+
+Greeter participates in the scaffold's self-improvement contract:
+
+- [`tests.md`](./tests.md) — user-authored ground-truth test cases
+- [`rubric.md`](./rubric.md) — weights, acceptance criterion, advisory critics
+- [`HISTORY.md`](./HISTORY.md) — append-only improvement trail written by
+  [`improver`](../improver/AGENT.md)
+
+To run an improvement cycle against greeter:
+
+```
+improver run agents/greeter --objective "<what to improve>"
+```
+
+See [`../improver/AGENT.md`](../improver/AGENT.md) for the loop details
+and [`../../README.md`](../../README.md) for the scaffold contract.

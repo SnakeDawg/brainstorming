@@ -2,6 +2,9 @@
 name: summarize-text
 description: Reduce a text blob to a one-sentence summary. Invoked directly, with no owning agent.
 scope: standalone
+improvement_agent: ../../agents/improver
+tests: ./tests.md
+rubric: ./rubric.md
 ---
 
 # summarize-text
