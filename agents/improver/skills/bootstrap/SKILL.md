@@ -69,12 +69,18 @@ On rebaseline, writes a marker annotation in `HISTORY.md`:
      [execute spec](../../../skills/shared/execute/SKILL.md)).
      Any parse error → print a diff-style error pointing at the bad
      block and exit.
+     After parsing, WARN (non-fatal) for each `contains` test where
+     `expected` is an empty string "". Empty expected vacuously passes
+     and is almost always an author mistake.
 
   4.5 VALIDATE tests ↔ rubric (if rubric.md already exists):
       - Extract test IDs from tests.md.
       - Extract weight IDs from rubric.md.
       - If sets differ: print a diff showing added/removed IDs and exit.
-      - Verify weights sum to 1.0 (within tolerance 0.01). Warn if not.
+      - Verify weights sum to 1.0 (within tolerance 0.01).
+        If |sum − 1.0| > 0.01: ERROR — print the actual sum and exit.
+        (Matches score pre-flight rule; bootstrap must enforce the same
+        invariant so problems are caught before any run, not during.)
       This prevents silent breakage when tests.md and rubric.md diverge.
 
   5. Generate <target>/rubric.md with:
@@ -84,6 +90,11 @@ On rebaseline, writes a marker annotation in `HISTORY.md`:
        - epsilon: 0.05
        - test weights: equal across all test ids
        - acceptance criterion: the scaffold default
+       - improvement_policy: scaffold defaults
+           trigger: manual
+           max_iterations: 3
+           saturated_iterations: 6
+           saturation_threshold: 0.95
        - advisory critics: none
      If rubric.md already exists, leave it alone and print a notice.
 

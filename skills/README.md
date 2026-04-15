@@ -52,6 +52,10 @@ skills/
 | [`read-file`](./shared/read-file/SKILL.md) | Read a file and return its contents | any | [`examples.md`](./shared/read-file/examples.md) |
 | [`execute`](./shared/execute/SKILL.md) | Canonical spec for match types, diff application, and test parsing | any | (spec is self-documenting) |
 
+> **Note:** `execute` is a **reference spec** consumed by `score`, `run`, and
+> `bootstrap` — it is not a callable shared skill. Unlike `read-file`, no agent
+> lists it in `shared_skills`; it is read as a specification document.
+
 ## `SKILL.md` frontmatter schema
 
 ```yaml

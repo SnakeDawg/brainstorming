@@ -184,22 +184,13 @@ Shared skills ship `examples.md` with worked input/output pairs.
 
 1. Take the `input` value from a `~~~test~~~` block in `tests.md`.
 2. Invoke the agent or skill with that input.
-3. Compare output against `expected` using the declared `match` rule:
-
-| Match | Pass condition |
-|---|---|
-| `exact` | output equals expected (optional `normalize: whitespace\|case\|both`) |
-| `contains` | expected is a substring of output |
-| `not_contains` | none of the listed strings appear in output |
-| `regex` | regex pattern matches output |
-| `json_path` | parse output as JSON; JSONPath result equals expected |
-| `length_between` | `len(output)` ∈ `[min, max]` |
-| `equals_number` | numeric equality within `tolerance` |
-| `shell` | pipe output to shell command; exit 0 = pass |
+3. Compare output against `expected` using the declared `match` rule.
+   Supported types: `exact`, `contains`, `not_contains`, `regex`,
+   `json_path`, `length_between`, `equals_number`, `shell`.
+   Full pseudocode + edge cases:
+   [`skills/shared/execute/SKILL.md`](./skills/shared/execute/SKILL.md)
 
 4. For `samples: N` tests, repeat N times — pass iff `passed/N ≥ pass_rate`.
-
-Full pseudocode + edge cases: [`skills/shared/execute/SKILL.md`](./skills/shared/execute/SKILL.md)
 
 ### Validate `tests.md` syntax
 
@@ -216,6 +207,9 @@ improver bootstrap --rebaseline <target-path>
 ```
 
 Verifies test IDs match rubric weight IDs and that weights sum to 1.0.
+
+> **Warning:** `--rebaseline` re-invokes the target and overwrites
+> `baseline_score` in `rubric.md`. It is not a dry-run lint.
 
 ---
 
@@ -297,9 +291,5 @@ versioning, rebaseline, scorer self-test, worked example, and research roadmap
 
 ## References
 
-- Karpathy, A. — [`autoresearch`](https://github.com/karpathy/autoresearch)
-- Shinn et al. (2023) — [Reflexion](https://arxiv.org/abs/2303.11366)
-- Wang et al. (2023) — [Voyager](https://arxiv.org/abs/2305.16291)
-- Hu et al. (2024) — [ADAS](https://arxiv.org/abs/2408.08435)
-- Anthropic — [Agent Skills overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview)
+Full bibliography → [`RESEARCH.md`](./RESEARCH.md)
 

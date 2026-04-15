@@ -1,5 +1,5 @@
 ---
-run_id: 2026-04-14-greeter-empty-input
+run_id: 2026-04-14-greeter-empty-input-a3f2
 target: agents/greeter
 started: 2026-04-14T14:03:00Z
 ended:   2026-04-14T14:07:22Z
@@ -10,9 +10,14 @@ iterations: 3
 iterations_accepted: 1
 iterations_rejected: 2
 duration_seconds: 262
+cost_tokens_input: 24689
+cost_tokens_output: 1180
+cost_time_seconds: 262
+cost_estimate_usd: 0.0015
+rubric_version: 1
 ---
 
-# Result for run 2026-04-14-greeter-empty-input
+# Result for run 2026-04-14-greeter-empty-input-a3f2
 
 Accepted candidate **001** on iteration 1. Iterations 2 and 3 were
 rejected (see their verdicts for reasons).

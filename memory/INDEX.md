@@ -8,9 +8,9 @@ for the user-friendly write-up.
 
 <!-- Run ID format: <YYYY-MM-DD>-<target-name>-<slug>-<4-char-hex>
      Slug: first 4 words of objective, kebab-cased, max 40 chars.
-     Hex: first 4 chars of SHA-256(<iso-timestamp>-<target>-<objective>).
+     Hex: 4 chars from a cryptographic random nonce (avoids collision in tight loops).
      Example: 2026-04-14-greeter-handle-empty-input-a3f2 -->
 
 | date       | target         | objective          | delta | verdict | cost     | report |
 |------------|----------------|--------------------|-------|---------|----------|--------|
-| 2026-04-14 | agents/greeter | handle empty input | +0.60 | accept  | —        | [↗](runs/2026-04-14-greeter-empty-input/REPORT.md) |
+| 2026-04-14 | agents/greeter | handle empty input | +0.60 | accept  | $0.0015  | [↗](runs/2026-04-14-greeter-empty-input-a3f2/REPORT.md) |

@@ -43,7 +43,7 @@ Neither is `blocking`.
 
 ```yaml
 improvement_policy:
-  trigger: production_count       # run improvement after N production invocations
+  trigger: manual       # run manually; production_count requires external signal (see SELF-IMPROVEMENT.md)
   min_production_runs: 10         # wait for 10 invocations before first improvement attempt
   backoff_multiplier: 2.0         # double wait after a no-improvement run
   max_backoff_runs: 100           # cap: never wait more than 100 invocations

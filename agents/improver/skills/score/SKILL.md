@@ -30,12 +30,12 @@ diagnostic error:
 2. **Weight sum** (Issue 4): Verify `Σ weight_t = 1.0` (tolerance
    0.01). Warn if outside tolerance; error if sum is 0.
 3. **Rubric version** (Issue 7): Read `version` from `rubric.md`
-   frontmatter and compare to the rubric version recorded in the
-   most recent run in `HISTORY.md`. If `rubric.md` version > last
-   run's version, require a rebaseline (`improver bootstrap
-   --rebaseline <target>`) before scoring. Error if stale.
-   When reading `HISTORY.md` for trend analysis, only consider runs
-   from the SAME rubric version.
+   frontmatter and compare to `rubric_version` in the current run's
+   `baseline.md` frontmatter (written by `bootstrap`). If
+   `rubric.md` version > `baseline.rubric_version`, require a
+   rebaseline (`improver bootstrap --rebaseline <target>`) before
+   scoring. Error if stale. `HISTORY.md` is strictly output — never
+   read it for version comparison.
 
 ## Input
 
@@ -164,8 +164,14 @@ candidate_score = Σ (weight_t × score_t)
 A regression is a test `t` where:
 
 ```
-baseline.score_t == 1.0  AND  candidate.score_t < 1.0
+candidate.score_t < baseline.score_t - 0.01
 ```
+
+The `0.01` tolerance prevents floating-point noise from triggering false
+regressions. For binary tests this is effectively unchanged (1.0 → 0.0 still
+triggers; 1.0 → 0.99 does not, which is impossible in practice). For
+`partial_credit` tests it correctly flags real drops (e.g. 0.67 → 0.00)
+that the previous rule (`baseline == 1.0`) would have missed.
 
 `regressions` in the frontmatter is the count of such tests.
 
@@ -199,79 +205,28 @@ triggering.
 - If you change the match rules in `tests.md`, re-running `score` on
   historical runs produces updated numbers without re-invoking any LLM.
 
-## Scorer self-test (Issue 9)
+## Scorer self-test (Issues 2 + 9)
 
 The scorer is the oracle. If it has bugs, the whole optimization loop
-flies blind (Agent Party: `time_efficiency` returned zero for 20
-experiments before the bug was caught).
+flies blind ([Agent Party](../../../RESEARCH.md#agent-party--autoresearch):
+`time_efficiency` returned zero for 20 experiments before the bug was caught).
 
-Before the first real scoring run against a target, `score` MUST process
-these canonical self-test cases and verify exact match. If any fail,
-halt with an error.
+Before the first real scoring run against a target, `score` MUST run its
+self-test and verify all cases pass. If any fail, halt with an error
+naming the failing match type.
 
 ### Self-test fixture
 
-**Input `tests.md`:**
+The fixture lives in [`self_test.md`](./self_test.md) as standard
+`~~~test~~~` blocks — one per match type (8 pass cases + 2 fail-guard
+cases). `score` parses this file using the same parser it uses for any
+`tests.md`. No LLM is involved; the fixture is fully deterministic.
 
-```
-~~~test
-id: st1
-name: self-test contains
-input: "world"
-match: contains
-expected: "hello world"
-samples: 1
-pass_rate: 1.0
-~~~
+`self_test.md` covers all 8 match types:
+`exact`, `contains`, `not_contains`, `regex`, `json_path`,
+`length_between`, `equals_number`, `shell`.
 
-~~~test
-id: st2
-name: self-test exact
-input: "42"
-match: exact
-expected: "42"
-samples: 2
-pass_rate: 0.5
-~~~
-```
+The two fail-guard cases catch always-pass bugs — if the scorer returns
+`pass` for a known mismatch, it halts with a diagnostic.
 
-**Input `rubric.md` weights:**
-
-| st1 | 0.60 |
-| st2 | 0.40 |
-
-**Input `run.md` (raw outputs):**
-
-```
-### st1 — self-test contains
-- input: "world"
-- sample 1: "hello world, welcome"
-
-### st2 — self-test exact
-- input: "42"
-- sample 1: "42"
-- sample 2: "43"
-```
-
-**Expected `scores.md`:**
-
-| id  | samples_passed | pass_rate | score | weighted |
-|-----|----------------|-----------|-------|----------|
-| st1 | 1/1            | 1.00      | 1.00  | 0.60     |
-| st2 | 1/2            | 0.50      | 1.00  | 0.40     |
-
-total: 1.00
-
-**Expected `verdict.md`:**
-
-```
-verdict: accept (if baseline_score ≤ 0.95 and epsilon = 0.05)
-regressions: 0
-```
-
-### Rationale
-
-- `st1`: "hello world, welcome" contains "hello world" → pass.
-- `st2`: sample 1 exact-matches "42" (pass), sample 2 is "43" (fail).
-  pass_rate = 0.50 ≥ 0.50 → score_t = 1.0 (binary mode).
-- candidate_score = 0.60×1.0 + 0.40×1.0 = 1.00.
+See [`self_test.md`](./self_test.md) for the full fixture.

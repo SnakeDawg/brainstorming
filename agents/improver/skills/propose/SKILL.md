@@ -98,6 +98,11 @@ trace (Tyler Cox: "instrument the proposer").
    diff; `run` and `score` decide the verdict.
 5. **One candidate per call.** The loop decides whether to call propose
    again.
+6. **Consider ≥ 2 approaches.** Before writing the diff, the proposer
+   MUST generate at least two candidate approaches and record what was
+   rejected and why in `reasoning_chain.rejected_approaches`. An empty
+   list is not acceptable — it signals the proposer stopped at the first
+   idea, which is the most common cause of repeated no-improvement runs.
 
 ## Failure modes and how they are handled
 

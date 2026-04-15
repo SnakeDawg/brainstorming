@@ -81,6 +81,11 @@ improvement_policy:
   Uses a **sliding window** of the last 15 runs (not just consecutive
   failures) to detect stall state — Agent Party showed non-monotonic
   trajectories where a score-40 run followed a score-30 run.
+- **Saturation mode**: When `candidate_score ≥ saturation_threshold`,
+  `saturated_iterations` (default 6) are used instead of `max_iterations`
+  (default 3). Near-optimal targets have high variance in marginal gains;
+  a wider search explores more of the design space before declaring
+  saturation, reducing the chance of stopping on a local maximum.
 - **Escalation**: If backoff has been applied 3+ times consecutively
   without improvement, the policy emits a warning in `HISTORY.md`
   suggesting rubric review or test expansion.
@@ -130,7 +135,7 @@ Where `<target-path>` is either `agents/<name>/` or `skills/<name>/`.
 ```
 
 - **Slug**: first 4 words of the objective, kebab-cased, max 40 chars.
-- **Hex**: first 4 chars of SHA-256 of `<iso-timestamp>-<target>-<objective>`.
+- **Hex**: 4 hex chars drawn from a cryptographic random nonce (not a hash of timestamp — avoids collisions in tight script loops at identical ISO seconds).
 - **Example**: `2026-04-14-greeter-handle-empty-input-a3f2`
 
 This eliminates collisions from the previous `<date>-<target>-<slug>`

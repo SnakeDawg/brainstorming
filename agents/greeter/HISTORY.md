@@ -15,4 +15,4 @@
 
 | date       | objective                 | baseline → new | verdict | report |
 |------------|---------------------------|-----------------|---------|--------|
-| 2026-04-14 | handle empty input        | 0.40 → 1.00    | accept  | [↗](../../memory/runs/2026-04-14-greeter-empty-input/REPORT.md) |
+| 2026-04-14 | handle empty input        | 0.40 → 1.00    | accept  | [↗](../../memory/runs/2026-04-14-greeter-empty-input-a3f2/REPORT.md) |

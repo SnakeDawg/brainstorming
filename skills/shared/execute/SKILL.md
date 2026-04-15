@@ -51,6 +51,8 @@ value       = quoted_string | number | boolean | list
 | `partial_credit` | boolean | false   | If true, `score_t = sample_rate` instead of binary. |
 | `normalize`      | string  | none    | Apply normalization before matching (`whitespace`, `case`, `both`). |
 | `tolerance`      | float   | 0       | For `equals_number`: allowed absolute difference. |
+| `json_path_expr` | string  | —       | For `json_path`: the JSONPath expression to evaluate against the parsed JSON output. |
+| `shell_timeout`  | int     | 10      | For `shell`: seconds before the command is killed and the sample is marked FAIL. |
 | `exercises`      | list    | []      | Shared skill names this test exercises (informational). |
 
 ## 2. Match Types — All 8, Fully Specified
@@ -139,7 +141,8 @@ PASS iff regex pattern matches anywhere in output (search, not fullmatch).
 |-----------|----------|
 | Empty pattern | PASS (matches everything) |
 | Empty output | Depends on pattern (e.g. `^$` matches, `.+` does not) |
-| Multiline | Patterns use `re.DOTALL` mode by default (`.` matches newlines) |
+| Multiline (`re.DOTALL`) | `.` matches newlines by default — the pattern spans the entire output as one string |
+| Line anchors (`^`/`$`) | Match start/end of the **entire output**, not per-line. `re.MULTILINE` is **not** applied. Use `\n` in the pattern if per-line matching is needed. |
 | Invalid regex | ERROR — halt scoring with diagnostic message |
 
 **Pseudocode:**
@@ -154,14 +157,18 @@ def match_regex(output, pattern):
 ### 2.5 `json_path`
 
 ```
-Parse output as JSON. Evaluate JSONPath expression. PASS iff result == expected.
+Parse output as JSON. Evaluate the JSONPath expression from `json_path_expr`.
+PASS iff result == expected.
 ```
+
+`json_path_expr` is a required field when `match: json_path` (see optional
+fields table). `expected` is the expected scalar value after evaluation.
 
 | Edge case | Behavior |
 |-----------|----------|
 | Output is not valid JSON | FAIL |
 | JSONPath returns no match | FAIL |
-| JSONPath returns multiple matches | Use first match |
+| JSONPath returns multiple matches | ERROR — halt scoring. Use explicit `[N]` indexing in `json_path_expr` to select a specific result. |
 | Expected is a number | Compare after type coercion (int/float) |
 
 **Pseudocode:**
@@ -174,6 +181,11 @@ def match_json_path(output, path_expr, expected):
     results = jsonpath(data, path_expr)
     if not results:
         return False
+    if len(results) > 1:
+        raise ScoringError(
+            f"json_path returned {len(results)} results. "
+            f"Use explicit [N] indexing in json_path_expr."
+        )
     return coerce_equal(results[0], expected)
 ```
 
@@ -233,16 +245,16 @@ PASS iff exit code == 0.
 | Edge case | Behavior |
 |-----------|----------|
 | Command not found | FAIL |
-| Command times out (>10s) | FAIL |
+| Command times out | FAIL — timeout is `shell_timeout` seconds (default 10) |
 | stderr output | Ignored — only exit code matters |
 | Empty output piped | Command receives empty stdin |
 
 **Pseudocode:**
 ```
-def match_shell(output, command):
+def match_shell(output, command, shell_timeout=10):
     result = subprocess.run(
         command, shell=True,
-        input=output, timeout=10,
+        input=output, timeout=shell_timeout,
         capture_output=True
     )
     return result.returncode == 0
@@ -266,7 +278,7 @@ Diffs use **unified diff format** (like `diff -u` output):
 ### Application rules
 
 1. **Target**: Always a scratch copy, never the live target.
-2. **Tiered match strategy** (from Agent Party `_fuzzy_find`):
+2. **Tiered match strategy** (from Agent Party [`_fuzzy_find`](../../../RESEARCH.md#_fuzzy_find--tiered-diff-application)):
    - **Tier 1 — Exact**: Context lines must match the scratch file byte-for-byte.
    - **Tier 2 — Whitespace-normalized**: If exact match fails, collapse all whitespace runs to single space and retry. Log `[fuzzy match]` if this tier succeeds.
    - **Tier 3 — Error**: If both tiers fail, the diff is unappliable. Write `verdict: reject (diff unappliable)` and halt.

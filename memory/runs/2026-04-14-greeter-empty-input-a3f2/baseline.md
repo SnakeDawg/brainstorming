@@ -1,13 +1,14 @@
 ---
-run_id: 2026-04-14-greeter-empty-input
+run_id: 2026-04-14-greeter-empty-input-a3f2
 target: agents/greeter
 measured_at: 2026-04-14T14:03:12Z
 baseline_score: 0.40
 samples_per_test: 3
 total_invocations: 9
+rubric_version: 1
 ---
 
-# Baseline for run 2026-04-14-greeter-empty-input
+# Baseline for run 2026-04-14-greeter-empty-input-a3f2
 
 Scored the **pre-fix** state of
 `agents/greeter/skills/format-greeting/SKILL.md` against

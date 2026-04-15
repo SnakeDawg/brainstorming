@@ -84,18 +84,10 @@ pass_rate: 1.0
 
 #### Match types
 
-| Match | Pass condition |
-|---|---|
-| `exact` | output equals expected (apply `normalize` if set) |
-| `contains` | expected is a substring of output |
-| `not_contains` | none of the listed strings appear in output |
-| `regex` | regex pattern matches output (`re.DOTALL` mode) |
-| `json_path` | parse output as JSON; JSONPath result equals expected |
-| `length_between` | `len(output)` ∈ `[min, max]` |
-| `equals_number` | `|output − expected| ≤ tolerance` |
-| `shell` | pipe output to shell command; exit 0 = pass |
+Supported: `exact`, `contains`, `not_contains`, `regex`, `json_path`,
+`length_between`, `equals_number`, `shell`.
 
-Full pseudocode, edge-case tables, and normalization reference:
+Full pseudocode, edge-case tables, and normalization reference →
 [`skills/shared/execute/SKILL.md`](./skills/shared/execute/SKILL.md)
 
 #### Scoring modes
@@ -155,13 +147,18 @@ improvement runs are triggered.
 
 | Field | Description |
 |---|---|
-| `trigger` | `manual`, `production_count`, `score_drop`, or `new_tests` |
+| `trigger` | `manual`, `production_count`\*, `score_drop`, or `new_tests` |
 | `min_production_runs` | Minimum real invocations before the first improvement attempt |
 | `backoff_multiplier` | Multiply wait after a no-improvement run (default 2.0) |
 | `max_backoff_runs` | Cap on backoff wait (prevents infinite deferral) |
 | `max_iterations` | Candidates per improvement run |
 | `saturated_iterations` | Wider search used when `score ≥ saturation_threshold` |
 | `saturation_threshold` | Score at which saturation mode kicks in (default 0.95) |
+
+\* `production_count` requires an external signal that increments a counter on
+each live invocation. This signal is outside the scope of the scaffold's MVP-0
+pure-markdown runtime. Use `trigger: manual` unless you have plumbed that
+signal. `greeter` ships with `trigger: manual` for this reason.
 
 **Backoff** uses a sliding window of the last 15 runs (not consecutive failures)
 to detect stall state — trajectories are non-monotonic in practice.
@@ -266,16 +263,14 @@ changes.
 
 ## References
 
+Full bibliography with implementation notes → [`RESEARCH.md`](./RESEARCH.md)
+
+Quick list:
+
 - Karpathy, A. — [`autoresearch`](https://github.com/karpathy/autoresearch)
-  (nanochat + one markdown prompt driving an autonomous loop)
-- Wang, G. et al. (2023) — [Voyager: An Open-Ended Embodied Agent with
-  Large Language Models](https://arxiv.org/abs/2305.16291)
-- Shinn, N. et al. (2023) — [Reflexion: Language Agents with Verbal
-  Reinforcement Learning](https://arxiv.org/abs/2303.11366)
-- Hu, S. et al. (2024) — [Automated Design of Agentic Systems
-  (ADAS)](https://arxiv.org/abs/2408.08435)
-- HKUDS (2025) — [AutoAgent: A Fully-Automated and Zero-Code Framework
-  for LLM Agents](https://arxiv.org/abs/2502.05957)
+- Shinn, N. et al. (2023) — [Reflexion](https://arxiv.org/abs/2303.11366)
+- Wang, G. et al. (2023) — [Voyager](https://arxiv.org/abs/2305.16291)
+- Hu, S. et al. (2024) — [ADAS](https://arxiv.org/abs/2408.08435)
+- HKUDS (2025) — [AutoAgent](https://arxiv.org/abs/2502.05957)
 - Anthropic — [Agent Skills overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview)
-  and [`anthropics/skills`](https://github.com/anthropics/skills)
-- EvoAgentX — [Awesome-Self-Evolving-Agents](https://github.com/EvoAgentX/Awesome-Self-Evolving-Agents) survey
+- EvoAgentX — [Awesome-Self-Evolving-Agents](https://github.com/EvoAgentX/Awesome-Self-Evolving-Agents)

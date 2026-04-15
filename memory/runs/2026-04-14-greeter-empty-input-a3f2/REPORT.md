@@ -1,6 +1,6 @@
 # Improver Run Report — greeter
 
-**Verdict: ACCEPT** · baseline 0.40 → **1.00** (+0.60) · 0 regressions · 4m 22s
+**Verdict: ACCEPT** · baseline 0.40 → **1.00** (+0.60) · 0 regressions · 4m 22s · ~$0.0015 · 24,689 tok in / 1,180 tok out
 
 ## TL;DR
 
