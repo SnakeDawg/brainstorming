@@ -15,6 +15,9 @@ flowchart TD
         G["agents/greeter\nAGENT.md"]
         G --> GS["  skills/format-greeting\n  SKILL.md"]
         G --> GT["  tests.md"] & GR["  rubric.md"]
+        SUM["agents/summarizer\nAGENT.md"]
+        SUM --> SUMS["  skills/format-summary\n  SKILL.md"]
+        SUM --> SUMT["  tests.md"] & SUMR["  rubric.md"]
     end
 
     subgraph Improver["agents/improver (meta-agent)"]
@@ -25,6 +28,7 @@ flowchart TD
 
     subgraph Skills
         ST["skills/summarize-text\n(standalone)"] --> STT[tests.md] & STR[rubric.md]
+        OB["skills/onboard\n(standalone)"] --> OBT[tests.md] & OBR[rubric.md]
         SH1["skills/shared/read-file"]
         SH2["skills/shared/execute\n(canonical spec)"]
     end
@@ -39,9 +43,12 @@ flowchart TD
     end
 
     G -->|improvement_agent| I
+    SUM -->|improvement_agent| I
     I -->|reads| GT & GR
     I -->|uses| SH1 & SH2
     SC -->|references| SH2
+    G -->|uses| SH1
+    SUM -->|uses| SH1
     I -->|writes| MEM & IDX & HIST
 ```
 
@@ -53,8 +60,9 @@ flowchart TD
 | # | Archetype | Example | Path |
 |---|---|---|---|
 | 1 | Agent with a **dedicated** skill | `greeter` + `format-greeting` | [`agents/greeter/`](./agents/greeter/AGENT.md) |
-| 2 | **Standalone** skill (no owning agent) | `summarize-text` | [`skills/summarize-text/`](./skills/summarize-text/SKILL.md) |
-| 3 | **Common shared** skill (any agent) | `read-file` | [`skills/shared/read-file/`](./skills/shared/read-file/SKILL.md) |
+| 1b | Agent with **shared skill reuse** | `summarizer` + `format-summary` + `read-file` | [`agents/summarizer/`](./agents/summarizer/AGENT.md) |
+| 2 | **Standalone** skill (no owning agent) | `summarize-text`, `onboard` | [`skills/summarize-text/`](./skills/summarize-text/SKILL.md) |
+| 3 | **Common shared** skill (any agent) | `read-file`, `execute` | [`skills/shared/read-file/`](./skills/shared/read-file/SKILL.md) |
 
 Rules in one paragraph:
 

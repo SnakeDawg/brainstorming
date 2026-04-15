@@ -1,0 +1,50 @@
+---
+name: {{ name }}
+description: {{ description }}
+scope: standalone
+improvement_agent: ../../agents/improver
+tests: ./tests.md
+rubric: ./rubric.md
+---
+
+# {{ name }}
+
+A standalone skill. **No agent owns this.** It is invoked directly by a
+caller (human, tool, or meta-agent) whenever <!-- TODO: describe the need -->.
+
+Because it is standalone, it sits at `skills/{{ name }}/` rather than under
+`skills/shared/`. The distinction is intent:
+
+- **Standalone** skills are end-user-facing operations invoked for their own sake.
+- **Shared** skills are utilities other agents pull in as dependencies.
+
+If this skill is later needed as a building block inside an agent, promote it
+to `scope: shared` and move the directory to `skills/shared/{{ name }}/`.
+
+## Input
+
+| Field | Type | Notes |
+|---|---|---|
+| <!-- TODO: field name --> | string | <!-- TODO: description --> |
+
+## Output
+
+<!-- TODO: Describe the output type and format. -->
+
+## Behavior
+
+```
+input:  <!-- TODO: example input -->
+output: <!-- TODO: example output -->
+```
+
+Edge cases:
+
+- <!-- TODO: empty/null input handling -->
+- <!-- TODO: any other edge cases -->
+
+## Invoke directly
+
+> "Use the `{{ name }}` skill to <!-- TODO: describe task -->: …"
+
+No agent wrapper is needed.

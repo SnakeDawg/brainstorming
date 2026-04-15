@@ -43,6 +43,7 @@ skills/
 | Skill | Description | Rubric |
 |---|---|---|
 | [`summarize-text`](./summarize-text/SKILL.md) | Reduce a text blob to a one-sentence summary | [`rubric.md`](./summarize-text/rubric.md) |
+| [`onboard`](./onboard/SKILL.md) | Interactive wizard to scaffold new agents/skills with correct frontmatter and test templates | [`rubric.md`](./onboard/rubric.md) |
 
 ### Shared
 
