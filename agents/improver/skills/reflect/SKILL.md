@@ -26,7 +26,7 @@ reflect --run <run-id> --candidate <NNN>
 
 | Source | What it provides |
 |---|---|
-| `memory/runs/<run-id>/candidates/<NNN>.diff.md` | what was tried |
+| `memory/runs/<run-id>/candidates/<NNN>.diff.md` | what was tried (includes `reasoning_chain` frontmatter) |
 | `memory/runs/<run-id>/candidates/<NNN>.run.md` | what the target produced |
 | `memory/runs/<run-id>/candidates/<NNN>.scores.md` | per-test outcome |
 | `memory/runs/<run-id>/candidates/<NNN>.verdict.md` | accept/reject + reason |
@@ -41,7 +41,7 @@ Append-only, two destinations:
 Each iteration appends one bullet. Format:
 
 ```markdown
-- **iter <N> (cand <NNN>, <verdict>):** <one-sentence lesson>
+- **iter <N> (cand <NNN>, <verdict>):** Intended: <proposer goal from reasoning_chain>. Actual: <outcome>. Lesson: <what to do differently>.
   Evidence: [scores](candidates/<NNN>.scores.md), [diff](candidates/<NNN>.diff.md)
 ```
 
@@ -49,6 +49,11 @@ Lessons should be:
 - Actionable ("when the target handles X, also handle Y")
 - Grounded in the verdict tag ("rejected for regression on t1 — avoid
   changes to the greeting prefix")
+- **Intent-aware**: reference what the proposer *intended* (from
+  `reasoning_chain.targeted_tests` and `reasoning_chain.confidence`)
+  vs what actually happened. This is the key insight from Agent Party:
+  logging only the outcome without the intent makes post-hoc analysis
+  impossible.
 - Single-sentence
 
 ### 2. Advisory critic output (optional)

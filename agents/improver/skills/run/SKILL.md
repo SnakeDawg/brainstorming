@@ -16,6 +16,9 @@ everything the `score` skill will need to compute a verdict.
 run --run <run-id> --candidate <NNN>
 ```
 
+Run ID format: `<YYYY-MM-DD>-<target-name>-<slug>-<4-char-hex>`.
+See [`AGENT.md`](../../AGENT.md) for the full specification.
+
 ## Input
 
 | Source | What it provides |
@@ -42,6 +45,10 @@ samples_per_test: <N>
 total_invocations: <N × num_tests>
 started: <iso8601>
 ended: <iso8601>
+cost_tokens_input: <int>          # input/prompt tokens consumed across all invocations
+cost_tokens_output: <int>         # output/completion tokens consumed
+cost_time_seconds: <float>        # wall-clock time from first invocation to last
+cost_estimate_usd: <float>        # estimated dollar cost (optional, model-dependent)
 ---
 
 # Run log for candidate <NNN>
@@ -97,6 +104,10 @@ measurable data:
 - Tests may override with `samples: N` in their `~~~test~~~` block.
 - Hard limit: 50 invocations per candidate. Exceeding the limit writes a
   `verdict: reject (budget exceeded)` and halts the run.
+- **Timeout**: `timeout_seconds: 300` (default). If the target produces
+  no output within this window for a single invocation, that invocation
+  is marked as a timeout failure. The output is recorded as
+  `[TIMEOUT after <N>s]` and `score` treats it as a non-match.
 
 ## Failure modes
 

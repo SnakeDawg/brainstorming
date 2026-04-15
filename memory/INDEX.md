@@ -6,6 +6,11 @@ Repo-wide activity log. One row per improver run (accepted or
 rejected), most recent first. Each row links to the run's `REPORT.md`
 for the user-friendly write-up.
 
-| date       | target         | objective          | delta | verdict | report |
-|------------|----------------|--------------------|-------|---------|--------|
-| 2026-04-14 | agents/greeter | handle empty input | +0.60 | accept  | [↗](runs/2026-04-14-greeter-empty-input/REPORT.md) |
+<!-- Run ID format: <YYYY-MM-DD>-<target-name>-<slug>-<4-char-hex>
+     Slug: first 4 words of objective, kebab-cased, max 40 chars.
+     Hex: first 4 chars of SHA-256(<iso-timestamp>-<target>-<objective>).
+     Example: 2026-04-14-greeter-handle-empty-input-a3f2 -->
+
+| date       | target         | objective          | delta | verdict | cost     | report |
+|------------|----------------|--------------------|-------|---------|----------|--------|
+| 2026-04-14 | agents/greeter | handle empty input | +0.60 | accept  | —        | [↗](runs/2026-04-14-greeter-empty-input/REPORT.md) |

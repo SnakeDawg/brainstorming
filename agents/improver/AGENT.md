@@ -60,6 +60,35 @@ the end of the run, [`skills/report`](./skills/report/SKILL.md) generates
 `REPORT.md`, appends a row to `agents/<target>/HISTORY.md`, and appends a
 row to `memory/INDEX.md`.
 
+### Improvement policy
+
+Not every invocation of a target triggers an improvement run. Each
+target's `rubric.md` may define an `improvement_policy` section:
+
+```yaml
+improvement_policy:
+  trigger: manual | production_count | score_drop | new_tests
+  min_production_runs: 10
+  backoff_multiplier: 2.0
+  max_backoff_runs: 100
+  max_iterations: 3
+  saturated_iterations: 6
+  saturation_threshold: 0.95
+```
+
+- **Backoff**: After a no-improvement run, `min_production_runs` is
+  multiplied by `backoff_multiplier` (capped at `max_backoff_runs`).
+  Uses a **sliding window** of the last 15 runs (not just consecutive
+  failures) to detect stall state — Agent Party showed non-monotonic
+  trajectories where a score-40 run followed a score-30 run.
+- **Escalation**: If backoff has been applied 3+ times consecutively
+  without improvement, the policy emits a warning in `HISTORY.md`
+  suggesting rubric review or test expansion.
+- **Cost tracking**: Each run records `cost_tokens_input`,
+  `cost_tokens_output`, `cost_time_seconds`, and `cost_estimate_usd`
+  in `run.md`. Token split (input vs output) matters: Agent Party
+  observed a 65:1 input-to-output ratio.
+
 ## Dedicated skills
 
 | Skill | Role |
@@ -87,11 +116,25 @@ off in MVP-0 to prevent obvious footguns. To enable it later, flip
 
 ```
 improver bootstrap <target-path>
+improver bootstrap --rebaseline <target-path>
 improver run       <target-path> --objective "<text>" [--max-iterations N]
 improver report    <run-directory>
 ```
 
 Where `<target-path>` is either `agents/<name>/` or `skills/<name>/`.
+
+### Run ID format
+
+```
+<YYYY-MM-DD>-<target-name>-<slug>-<4-char-hex>
+```
+
+- **Slug**: first 4 words of the objective, kebab-cased, max 40 chars.
+- **Hex**: first 4 chars of SHA-256 of `<iso-timestamp>-<target>-<objective>`.
+- **Example**: `2026-04-14-greeter-handle-empty-input-a3f2`
+
+This eliminates collisions from the previous `<date>-<target>-<slug>`
+format.
 
 ## Safety rules
 

@@ -39,9 +39,26 @@ affect the numeric score or the accept/reject verdict.
 
 Neither is `blocking`.
 
+## Improvement policy
+
+```yaml
+improvement_policy:
+  trigger: production_count       # run improvement after N production invocations
+  min_production_runs: 10         # wait for 10 invocations before first improvement attempt
+  backoff_multiplier: 2.0         # double wait after a no-improvement run
+  max_backoff_runs: 100           # cap: never wait more than 100 invocations
+  max_iterations: 3               # candidates per improvement run
+  saturated_iterations: 6         # wider search when near-perfect
+  saturation_threshold: 0.95      # score at which saturation kicks in
+```
+
 ## Baseline history
 
 `baseline_score` above is the score of the current live target
 (`agents/greeter/skills/format-greeting/SKILL.md`) against `tests.md`.
 It is updated automatically by `improver` whenever a candidate is
 accepted. See [`HISTORY.md`](./HISTORY.md) for the full progression.
+
+The `version` field in frontmatter is incremented when rubric rules
+change (weights, acceptance criterion, test additions). Incrementing
+it triggers a mandatory rebaseline before the next scoring run.

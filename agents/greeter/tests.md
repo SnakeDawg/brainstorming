@@ -10,6 +10,11 @@ case. Scoring does not involve any LLM judgment — see
 [`agents/improver/skills/score/SKILL.md`](../improver/skills/score/SKILL.md)
 for the supported match types.
 
+<!-- Scoring mode: all tests below use binary scoring (default).
+     To enable gradient signal for near-misses, add `partial_credit: true`
+     to a ~~~test~~~ block. This makes score_t = sample_rate instead of
+     binary 0/1. See skills/shared/execute/SKILL.md for details. -->
+
 ~~~test
 id: t1
 name: basic name

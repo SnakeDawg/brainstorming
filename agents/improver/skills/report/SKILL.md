@@ -42,14 +42,15 @@ Section order (fixed):
 ```
 # Improver Run Report — <target>
 
-**Verdict: <ACCEPT|REJECT>** · baseline <X> → **<Y>** (<±Δ>) · <N> regressions · <duration>
+**Verdict: <ACCEPT|REJECT>** · baseline <X> → **<Y>** (<±Δ>) · <N> regressions · <duration> · $<cost_estimate_usd>
 
 ## TL;DR
 <1–3 sentences pulled from result.md and the accepted verdict>
 
 ## Snapshot
 <table: target, objective, started/ended, iterations, accepted candidate,
- samples per test, total invocations>
+ samples per test, total invocations, rubric version,
+ cost: tokens_in / tokens_out / time / est_usd>
 
 ## Score progression
 <ASCII bar chart, one line per iteration, using Unicode block glyphs
@@ -60,12 +61,14 @@ Section order (fixed):
 
 ## What changed
 <link to accepted diff, 1-paragraph plain-English summary>
+<one-sentence summary of proposer intent (from reasoning_chain in diff.md)>
 
 ## Before / after samples
 <table: one row per test, columns: input, before, after>
 
 ## Lessons learned
 <bulleted, pulled from lessons.md; top 3 if many>
+Format: **iter N (cand NNN, verdict):** Intended: <goal>. Actual: <outcome>. Lesson: <insight>.
 
 ## Next steps
 <follow-up run ideas, rubric gaps noticed, advisory critic flags>
@@ -114,6 +117,9 @@ First invocation also writes the header and banner.
 Only accepted runs change "Current score". Every run (accept or reject)
 gets a row in "Recent runs" and a point on the curve.
 
+If a run is the first after a rebaseline, the row is annotated:
+`[rebaseline vN → vM]` so the curve shows where rubric rules changed.
+
 ## Output: `memory/INDEX.md` (append row)
 
 Repo-wide one-line-per-run table, most recent at the top.
@@ -123,9 +129,9 @@ Repo-wide one-line-per-run table, most recent at the top.
 
 # Improvement index
 
-| date | target | objective | delta | verdict | report |
-|---|---|---|---|---|---|
-| <date> | <target> | <objective> | <±Δ> | accept/reject | [↗](runs/<id>/REPORT.md) |
+| date       | target         | objective          | delta | verdict | cost     | report |
+|---|---|---|---|---|---|---|
+| <date> | <target> | <objective> | <±Δ> | accept/reject | $<est> | [↗](runs/<id>/REPORT.md) |
 ```
 
 ## Live console output (during a run)

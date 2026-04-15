@@ -9,6 +9,10 @@ YAML frontmatter. Two kinds live here:
 - **Shared skills** — utility skills that any agent may pull into its
   `AGENT.md`. They live under [`shared/`](./shared/). Shared skills do
   NOT need a rubric; they are covered by the calling agent's rubric.
+  Shared skills MAY ship an optional `examples.md` with worked
+  input/output pairs. Calling agents SHOULD tag tests that exercise
+  shared skills with `exercises: [shared-skill-name]` in the
+  `~~~test~~~` block (informational, not scored — for coverage tracking).
 
 A third kind, **dedicated skills**, does **not** live here. Those are
 co-located inside their owning agent's directory under
@@ -42,9 +46,10 @@ skills/
 
 ### Shared
 
-| Skill | Description | Consumers |
-|---|---|---|
-| [`read-file`](./shared/read-file/SKILL.md) | Read a file and return its contents | any |
+| Skill | Description | Consumers | Examples |
+|---|---|---|---|
+| [`read-file`](./shared/read-file/SKILL.md) | Read a file and return its contents | any | [`examples.md`](./shared/read-file/examples.md) |
+| [`execute`](./shared/execute/SKILL.md) | Canonical spec for match types, diff application, and test parsing | any | (spec is self-documenting) |
 
 ## `SKILL.md` frontmatter schema
 

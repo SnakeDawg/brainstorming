@@ -19,6 +19,24 @@ score --run <run-id> --candidate <NNN>
 
 Also called by `bootstrap` in step 6 to compute the initial baseline.
 
+## Pre-flight validation
+
+Before scoring, `score` runs these checks. Any failure halts with a
+diagnostic error:
+
+1. **tests ↔ rubric ID match** (Issue 4): Extract test IDs from
+   `tests.md` and weight IDs from `rubric.md`. If the sets differ,
+   print a diff of added/removed IDs and halt.
+2. **Weight sum** (Issue 4): Verify `Σ weight_t = 1.0` (tolerance
+   0.01). Warn if outside tolerance; error if sum is 0.
+3. **Rubric version** (Issue 7): Read `version` from `rubric.md`
+   frontmatter and compare to the rubric version recorded in the
+   most recent run in `HISTORY.md`. If `rubric.md` version > last
+   run's version, require a rebaseline (`improver bootstrap
+   --rebaseline <target>`) before scoring. Error if stale.
+   When reading `HISTORY.md` for trend analysis, only consider runs
+   from the SAME rubric version.
+
 ## Input
 
 | Source | What it provides |
@@ -91,6 +109,17 @@ No other match types exist. If a behavior cannot be expressed in these,
 it stays in the `advisory critics` section of `rubric.md` and is logged
 by `reflect` — it does not influence the score.
 
+See [`skills/shared/execute/SKILL.md`](../../../skills/shared/execute/SKILL.md)
+for the canonical spec with pseudocode, edge-case tables, and
+normalization rules.
+
+### `exercises` field (informational)
+
+Tests MAY include `exercises: [shared-skill-name]` to tag which shared
+skills they exercise. This field is **not scored** — it exists for
+coverage tracking so humans can verify shared skills are tested through
+at least one calling agent. `score` ignores it during evaluation.
+
 ## Per-test scoring
 
 For each test `t` with `samples: S` and `pass_rate: P`:
@@ -98,8 +127,29 @@ For each test `t` with `samples: S` and `pass_rate: P`:
 ```
 passed     = count of samples where (match rule evaluates true)
 sample_rate = passed / S
-score_t    = 1.0 if sample_rate ≥ P else 0.0
 ```
+
+### Binary mode (default)
+
+```
+score_t = 1.0 if sample_rate ≥ P else 0.0
+```
+
+### Partial credit mode
+
+If the test declares `partial_credit: true` in its `~~~test~~~` block:
+
+```
+score_t = sample_rate
+```
+
+This gives gradient signal for near-misses (e.g. 2/3 samples pass → 0.67
+instead of 0.0). Trade-off: partial credit loosens the pass/fail contract —
+a target may be accepted with tests that never fully pass. Use binary mode
+for hard correctness requirements and partial credit for soft quality tests.
+
+See the [execute spec](../../../skills/shared/execute/SKILL.md) for the
+complete `partial_credit` field definition.
 
 Then:
 
@@ -148,3 +198,80 @@ triggering.
 - No clock, randomness, or LLM call participates in the scoring pipeline.
 - If you change the match rules in `tests.md`, re-running `score` on
   historical runs produces updated numbers without re-invoking any LLM.
+
+## Scorer self-test (Issue 9)
+
+The scorer is the oracle. If it has bugs, the whole optimization loop
+flies blind (Agent Party: `time_efficiency` returned zero for 20
+experiments before the bug was caught).
+
+Before the first real scoring run against a target, `score` MUST process
+these canonical self-test cases and verify exact match. If any fail,
+halt with an error.
+
+### Self-test fixture
+
+**Input `tests.md`:**
+
+```
+~~~test
+id: st1
+name: self-test contains
+input: "world"
+match: contains
+expected: "hello world"
+samples: 1
+pass_rate: 1.0
+~~~
+
+~~~test
+id: st2
+name: self-test exact
+input: "42"
+match: exact
+expected: "42"
+samples: 2
+pass_rate: 0.5
+~~~
+```
+
+**Input `rubric.md` weights:**
+
+| st1 | 0.60 |
+| st2 | 0.40 |
+
+**Input `run.md` (raw outputs):**
+
+```
+### st1 — self-test contains
+- input: "world"
+- sample 1: "hello world, welcome"
+
+### st2 — self-test exact
+- input: "42"
+- sample 1: "42"
+- sample 2: "43"
+```
+
+**Expected `scores.md`:**
+
+| id  | samples_passed | pass_rate | score | weighted |
+|-----|----------------|-----------|-------|----------|
+| st1 | 1/1            | 1.00      | 1.00  | 0.60     |
+| st2 | 1/2            | 0.50      | 1.00  | 0.40     |
+
+total: 1.00
+
+**Expected `verdict.md`:**
+
+```
+verdict: accept (if baseline_score ≤ 0.95 and epsilon = 0.05)
+regressions: 0
+```
+
+### Rationale
+
+- `st1`: "hello world, welcome" contains "hello world" → pass.
+- `st2`: sample 1 exact-matches "42" (pass), sample 2 is "43" (fail).
+  pass_rate = 0.50 ≥ 0.50 → score_t = 1.0 (binary mode).
+- candidate_score = 0.60×1.0 + 0.40×1.0 = 1.00.

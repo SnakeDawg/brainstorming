@@ -16,10 +16,17 @@ valid user-authored `tests.md` and a matching `rubric.md` before any
 
 ```
 improver bootstrap <target-path>
+improver bootstrap --rebaseline <target-path>
 ```
 
 `<target-path>` points at an agent directory (`agents/<name>/`) or a
 standalone skill directory (`skills/<name>/`).
+
+**`--rebaseline`**: Re-measures baseline against existing `tests.md` +
+`rubric.md` without touching test content. Triggered manually or
+automatically when `rubric.md` `version` field changes or test IDs change.
+On rebaseline, writes a marker annotation in `HISTORY.md`:
+`[rebaseline vN → vM]`.
 
 ## Input
 
@@ -58,8 +65,17 @@ standalone skill directory (`skills/<name>/`).
      EXIT. Do nothing else.
 
   4. Parse tests.md. Validate every ~~~test~~~ block against the schema
-     defined in score/SKILL.md. Any parse error → print a diff-style
-     error pointing at the bad block and exit.
+     defined in score/SKILL.md (see also
+     [execute spec](../../../skills/shared/execute/SKILL.md)).
+     Any parse error → print a diff-style error pointing at the bad
+     block and exit.
+
+  4.5 VALIDATE tests ↔ rubric (if rubric.md already exists):
+      - Extract test IDs from tests.md.
+      - Extract weight IDs from rubric.md.
+      - If sets differ: print a diff showing added/removed IDs and exit.
+      - Verify weights sum to 1.0 (within tolerance 0.01). Warn if not.
+      This prevents silent breakage when tests.md and rubric.md diverge.
 
   5. Generate <target>/rubric.md with:
        - agent: <target-name>

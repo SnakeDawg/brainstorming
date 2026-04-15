@@ -30,6 +30,7 @@ propose --run <run-id> --target <path> --objective <text> --iteration <N>
 | `memory/runs/<run-id>/baseline.md` | per-test score breakdown of the current state |
 | `memory/runs/<run-id>/lessons.md` | Reflexion memory from earlier iterations |
 | `memory/runs/<run-id>/candidates/*/verdict.md` | reasons prior candidates were rejected |
+| `<target>/HISTORY.md` | last 15 runs for stall detection (sliding window) |
 
 ## Output
 
@@ -48,6 +49,13 @@ target: <relative path to the file(s) the diff modifies>
 proposed_by: improver/skills/propose
 iteration: <N>
 rationale_summary: <one sentence>
+reasoning_chain:
+  targeted_tests: [<test IDs this diff targets>]
+  incorporated_lessons: [<lessons from prior iterations>]
+  rejected_approaches:
+    - approach: <what was considered>
+      reason: <why rejected>
+  confidence: low | medium | high
 ---
 
 # Candidate <NNN> — <short title>
@@ -66,6 +74,13 @@ improve the failing tests without regressing the passing ones.>
 <unified diff lines>
 ~~~
 ```
+
+The `reasoning_chain` frontmatter captures the proposer's decision
+process for post-hoc analysis — which failing tests it targeted, which
+lessons it incorporated, which approaches it rejected, and its
+confidence level. This addresses Agent Party's gap where proposal
+outputs only contained `description` + `changes` with no reasoning
+trace (Tyler Cox: "instrument the proposer").
 
 ## Rules
 
