@@ -7,26 +7,62 @@ epsilon: 0.05
 
 # Rubric for greeter
 
-Thin scoring contract. This file contains **no test data** — all tests
-live in [`tests.md`](./tests.md). This file only defines weights,
-acceptance, and any advisory critics.
+The scoring contract. Every `~~~test~~~` block below is an evaluation rule:
+input, expected behavior, match type, and weight. The scorer reads this
+file as the sole source of truth for accept/reject decisions. See
+[`../../skills/shared/execute/SKILL.md`](../../skills/shared/execute/SKILL.md)
+for the full match-type reference.
 
-## Test weights
+<!-- Scoring mode: all rules below use binary scoring (default).
+     To enable gradient signal for near-misses, add `partial_credit: true`
+     to a ~~~test~~~ block. This makes score_t = sample_rate instead of
+     binary 0/1. -->
 
-| test id | name                | weight |
-|---------|---------------------|--------|
-| t1      | basic name          | 0.40   |
-| t2      | empty input         | 0.30   |
-| t3      | whitespace trimming | 0.30   |
+## Evaluation rules
 
-Sum = 1.00. Final score = Σ (weight × per-test result), range [0, 1].
+~~~test
+id: t1
+name: basic name
+weight: 0.40
+input: "Ada"
+match: contains
+expected: "Hello, Ada"
+samples: 3
+pass_rate: 1.0
+~~~
+
+~~~test
+id: t2
+name: empty input
+weight: 0.30
+input: ""
+match: contains
+expected: "Hello!"
+not_contains: ["Hello,"]
+samples: 3
+pass_rate: 1.0
+~~~
+
+~~~test
+id: t3
+name: whitespace trimming
+weight: 0.30
+input: "  Grace  "
+match: contains
+expected: "Hello, Grace"
+not_contains: ["Hello,  ", "  Grace"]
+samples: 3
+pass_rate: 1.0
+~~~
+
+Sum of weights = 1.00. Final score = Σ (weight × per-rule result), range [0, 1].
 
 ## Acceptance criterion
 
 A candidate is accepted iff **all** hold:
 
 1. `candidate_score ≥ baseline_score + epsilon`
-2. no test that passed at baseline now fails (zero regressions)
+2. no rule that passed at baseline now fails (zero regressions)
 3. no advisory critic marked `blocking: true` raises a flag
 
 ## Advisory critics (NOT scored)
@@ -44,21 +80,21 @@ Neither is `blocking`.
 ```yaml
 improvement_policy:
   trigger: manual       # run manually; production_count requires external signal (see SELF-IMPROVEMENT.md)
-  min_production_runs: 10         # wait for 10 invocations before first improvement attempt
-  backoff_multiplier: 2.0         # double wait after a no-improvement run
-  max_backoff_runs: 100           # cap: never wait more than 100 invocations
-  max_iterations: 3               # candidates per improvement run
-  saturated_iterations: 6         # wider search when near-perfect
-  saturation_threshold: 0.95      # score at which saturation kicks in
+  min_production_runs: 10
+  backoff_multiplier: 2.0
+  max_backoff_runs: 100
+  max_iterations: 3
+  saturated_iterations: 6
+  saturation_threshold: 0.95
 ```
 
 ## Baseline history
 
 `baseline_score` above is the score of the current live target
-(`agents/greeter/skills/format-greeting/SKILL.md`) against `tests.md`.
-It is updated automatically by `improver` whenever a candidate is
-accepted. See [`HISTORY.md`](./HISTORY.md) for the full progression.
+(`agents/greeter/skills/format-greeting/SKILL.md`) against the rules in
+this file. It is updated automatically by `improver` whenever a candidate
+is accepted. See [`HISTORY.md`](./HISTORY.md) for the full progression.
 
 The `version` field in frontmatter is incremented when rubric rules
-change (weights, acceptance criterion, test additions). Incrementing
+change (weights, acceptance criterion, rule additions). Incrementing
 it triggers a mandatory rebaseline before the next scoring run.

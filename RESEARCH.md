@@ -69,7 +69,7 @@ JSON/YAML/shell post-apply validation is also from the same source.
   (ADAS)](https://arxiv.org/abs/2408.08435)
 - **Applied**: `self_improvable: false` in `agents/improver/AGENT.md` is
   the gate for ADAS-style recursive self-modification. Flipping to `true`
-  and shipping a real `tests.md` for improver enables it.
+  and shipping real evaluation rules in improver's `rubric.md` enables it.
 
 ---
 

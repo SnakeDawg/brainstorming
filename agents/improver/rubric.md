@@ -8,21 +8,21 @@ mode: deferred
 
 # Rubric for improver
 
-> **Status: deferred.** See [`tests.md`](./tests.md) — improver's scoring
-> contract is not yet defined because `self_improvable: false` in MVP-0.
-> This file exists to satisfy the universal rule that every agent ships
-> `rubric.md`.
+> **Status: deferred.** Improver is infrastructure. Its behavior is
+> most naturally tested by the outcomes of running it against other
+> agents — i.e. the `memory/runs/` trail *is* improver's test suite in
+> practice. A dedicated self-scoring suite is out of scope for MVP-0
+> and is gated behind `self_improvable: true` in
+> [`AGENT.md`](./AGENT.md).
 
-When self-improvement is enabled:
+This file exists so improver satisfies the scaffold's universal rule:
+**every agent ships `rubric.md`**. When self-improvement of improver
+is unlocked in a later MVP, the human-authored evaluation rules will
+go below as standard `~~~test~~~` blocks with embedded weights.
 
-- `baseline_score` will be populated by bootstrap.
-- Test weights will be filled in below.
-- Acceptance criterion will match the scaffold default: `candidate_score
-  ≥ baseline_score + epsilon` AND zero regressions.
+## Evaluation rules
 
-## Test weights
-
-*(none — pending deferred tests)*
+*(none — pending deferred scoring contract)*
 
 ## Acceptance criterion
 

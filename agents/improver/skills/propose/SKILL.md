@@ -1,6 +1,6 @@
 ---
 name: propose
-description: Draft a candidate diff against the target, informed by the target's tests.md, its current rubric, and the Reflexion lessons from prior iterations.
+description: Draft a candidate diff against the target, informed by the target's rubric.md and the Reflexion lessons from prior iterations.
 scope: dedicated
 owner: improver
 ---
@@ -24,8 +24,7 @@ propose --run <run-id> --target <path> --objective <text> --iteration <N>
 | Source | What it provides |
 |---|---|
 | `<target>/AGENT.md` or `SKILL.md` | current behavior under test |
-| `<target>/tests.md` | ground-truth test cases |
-| `<target>/rubric.md` | weights, acceptance criterion, current baseline |
+| `<target>/rubric.md` | evaluation rules, weights, acceptance criterion, current baseline |
 | `memory/runs/<run-id>/objective.md` | what this run is trying to improve |
 | `memory/runs/<run-id>/baseline.md` | per-test score breakdown of the current state |
 | `memory/runs/<run-id>/lessons.md` | Reflexion memory from earlier iterations |
@@ -109,6 +108,6 @@ trace (Tyler Cox: "instrument the proposer").
 | Failure | Behavior |
 |---|---|
 | Could not read target | Return error; loop halts |
-| `tests.md` missing | Return error; loop halts (bootstrap should have caught this) |
+| `rubric.md` missing | Return error; loop halts (bootstrap should have caught this) |
 | LLM produced a non-parseable diff | Retry once with an explicit format reminder; if still bad, write a verdict "reject (unparseable)" and skip to next iteration |
 | LLM proposed an identical diff to a prior candidate | Skip; count as no-op; loop continues |

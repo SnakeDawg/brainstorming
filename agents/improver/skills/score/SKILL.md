@@ -1,6 +1,6 @@
 ---
 name: score
-description: Deterministically evaluate a candidate's raw outputs against the target's tests.md and emit a numeric score plus an accept/reject verdict. The only place in the loop where acceptance is decided — and it contains no LLM judgment.
+description: Deterministically evaluate a candidate's raw outputs against the target's rubric.md and emit a numeric score plus an accept/reject verdict. The only place in the loop where acceptance is decided — and it contains no LLM judgment.
 scope: dedicated
 owner: improver
 ---
@@ -8,8 +8,12 @@ owner: improver
 # score
 
 The deterministic heart of the loop. `score` is a pure function from
-`tests.md` + `rubric.md` + raw outputs to a numeric score and a verdict.
+`rubric.md` + raw outputs to a numeric score and a verdict.
 **No LLM is involved in scoring or in the accept/reject decision.**
+
+The target's `rubric.md` is the sole scoring source. Every evaluation
+rule (input, expected, match type, weight) lives in `~~~test~~~` blocks
+inside `rubric.md`. There is no separate `tests.md`.
 
 ## Invocation
 
@@ -24,11 +28,13 @@ Also called by `bootstrap` in step 6 to compute the initial baseline.
 Before scoring, `score` runs these checks. Any failure halts with a
 diagnostic error:
 
-1. **tests ↔ rubric ID match** (Issue 4): Extract test IDs from
-   `tests.md` and weight IDs from `rubric.md`. If the sets differ,
-   print a diff of added/removed IDs and halt.
-2. **Weight sum** (Issue 4): Verify `Σ weight_t = 1.0` (tolerance
-   0.01). Warn if outside tolerance; error if sum is 0.
+1. **Rule block validity**: Parse every `~~~test~~~` block in
+   `rubric.md`. Each block must declare `id`, `weight`, `input`,
+   `match`, `expected` (plus any type-specific fields). Missing
+   fields → print the bad block and halt.
+2. **Weight sum**: Verify `Σ weight_t = 1.0` (tolerance 0.01). If
+   `|sum − 1.0| > 0.01`: ERROR — print the actual sum and halt.
+   If sum is 0: ERROR.
 3. **Rubric version** (Issue 7): Read `version` from `rubric.md`
    frontmatter and compare to `rubric_version` in the current run's
    `baseline.md` frontmatter (written by `bootstrap`). If
@@ -41,10 +47,9 @@ diagnostic error:
 
 | Source | What it provides |
 |---|---|
-| `memory/runs/<run-id>/candidates/<NNN>.run.md` | raw outputs, one per sample per test |
-| `<target>/tests.md` | test cases with match rules |
-| `<target>/rubric.md` | weights, epsilon, baseline_score, acceptance criterion |
-| `memory/runs/<run-id>/baseline.md` | per-test baseline breakdown for regression detection |
+| `memory/runs/<run-id>/candidates/<NNN>.run.md` | raw outputs, one per sample per rule |
+| `<target>/rubric.md` | evaluation rules (`~~~test~~~` blocks), weights, epsilon, baseline_score, acceptance criterion |
+| `memory/runs/<run-id>/baseline.md` | per-rule baseline breakdown for regression detection |
 
 ## Output
 
@@ -202,7 +207,7 @@ triggering.
   and `verdict.md`. A score can be recomputed from evidence files at
   any time without rerunning the target.
 - No clock, randomness, or LLM call participates in the scoring pipeline.
-- If you change the match rules in `tests.md`, re-running `score` on
+- If you change the match rules in `rubric.md`, re-running `score` on
   historical runs produces updated numbers without re-invoking any LLM.
 
 ## Scorer self-test (Issues 2 + 9)
@@ -220,7 +225,7 @@ naming the failing match type.
 The fixture lives in [`self_test.md`](./self_test.md) as standard
 `~~~test~~~` blocks — one per match type (8 pass cases + 2 fail-guard
 cases). `score` parses this file using the same parser it uses for any
-`tests.md`. No LLM is involved; the fixture is fully deterministic.
+`rubric.md`. No LLM is involved; the fixture is fully deterministic.
 
 `self_test.md` covers all 8 match types:
 `exact`, `contains`, `not_contains`, `regex`, `json_path`,

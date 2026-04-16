@@ -1,6 +1,6 @@
 ---
 name: execute
-description: Canonical spec for deterministic test execution — match types, diff application, and test-block parsing. The single source of truth for how the improver's score and run skills interpret tests.md.
+description: Canonical spec for deterministic rule execution — match types, diff application, and ~~~test~~~ block parsing. The single source of truth for how the improver's score and run skills interpret rubric.md.
 scope: shared
 consumers: any
 ---
@@ -16,7 +16,7 @@ This skill is not invoked directly. It is a **reference spec** consumed by:
 
 - [`score`](../../../agents/improver/skills/score/SKILL.md) — to evaluate outputs
 - [`run`](../../../agents/improver/skills/run/SKILL.md) — to apply diffs and capture outputs
-- [`bootstrap`](../../../agents/improver/skills/bootstrap/SKILL.md) — to validate test syntax
+- [`bootstrap`](../../../agents/improver/skills/bootstrap/SKILL.md) — to validate rubric.md syntax
 
 ## 1. `~~~test~~~` Block Parsing
 
@@ -36,8 +36,9 @@ value       = quoted_string | number | boolean | list
 
 | Field    | Type   | Default | Description |
 |----------|--------|---------|-------------|
-| `id`     | string | —       | Unique test identifier (e.g. `t1`). Must match rubric weight IDs. |
+| `id`     | string | —       | Unique rule identifier within the rubric (e.g. `t1`). |
 | `name`   | string | —       | Human-readable label. |
+| `weight` | float  | —       | Contribution to the final score. Sum across all rules in `rubric.md` must equal 1.0 ± 0.01. |
 | `input`  | string | —       | The input passed to the target. May be empty string `""`. |
 | `match`  | string | —       | One of the 8 match types below. |
 | `expected` | string/number/list | — | The expected value (type depends on match). |
@@ -342,7 +343,7 @@ All errors during execution are **loud and halting**, never silent:
 |-------|----------|
 | Unknown match type in `~~~test~~~` block | ERROR — halt scoring, name the unknown type |
 | Malformed `~~~test~~~` block (missing required field) | ERROR — halt scoring, name the missing field |
-| Test ID in `tests.md` not found in `rubric.md` weights | ERROR — halt scoring (Issue 4 validation) |
+| `~~~test~~~` block in `rubric.md` missing required fields (`id`, `weight`, `input`, `match`, `expected`) | ERROR — halt scoring, name the missing field |
 | Diff hunk does not apply (tier 1 + tier 2 failed) | REJECT candidate, log which hunk failed |
 | Post-apply structural validation fails | REJECT candidate, log the parse error |
 | `shell` match command times out | FAIL the sample, log timeout |

@@ -10,7 +10,8 @@ the [README](./README.md).
 
 `agents/improver` runs a closed-loop improvement cycle against any **target**
 — an agent or a standalone skill — guided by that target's user-authored
-`tests.md` and a thin `rubric.md`.
+`rubric.md`, which contains every evaluation rule, its weight, and the
+acceptance criterion.
 
 ### Core principle: scoring is deterministic
 
@@ -20,7 +21,7 @@ accept/reject verdict is a pure function of:
 
 - pattern / regex / structural matches against user-authored `expected` values
 - numeric score delta vs. baseline
-- regression count across previously-passing tests
+- regression count across previously-passing rules
 
 LLM-as-judge is allowed only as *advisory critics* — logged to `lessons.md`,
 never affecting the numeric verdict.
@@ -29,7 +30,7 @@ never affecting the numeric verdict.
 
 | Skill | Role |
 |---|---|
-| [`bootstrap`](./agents/improver/skills/bootstrap/SKILL.md) | Gate: wait for user-authored `tests.md`, generate `rubric.md`, measure first baseline |
+| [`bootstrap`](./agents/improver/skills/bootstrap/SKILL.md) | Gate: wait for user-authored `rubric.md` with evaluation rules, measure first baseline |
 | [`propose`](./agents/improver/skills/propose/SKILL.md) | Draft a candidate diff — the only creative step; includes `reasoning_chain` |
 | [`run`](./agents/improver/skills/run/SKILL.md) | Apply diff to scratch copy, exercise target with multi-sample invocations |
 | [`score`](./agents/improver/skills/score/SKILL.md) | Deterministic scoring — the only accept/reject authority |
@@ -40,47 +41,87 @@ never affecting the numeric verdict.
 
 ## The self-improvement contract
 
-**Every agent MUST ship `tests.md` and `rubric.md`.** Standalone skills too.
-Shared and dedicated skills inherit from their caller / owning agent. Improver
-refuses to run the loop against a target that doesn't satisfy this contract.
+**Every agent MUST ship `rubric.md`.** Standalone skills too. Shared and
+dedicated skills inherit from their caller / owning agent. Improver refuses
+to run the loop against a target whose `rubric.md` has no valid `~~~test~~~`
+rule blocks or whose weights don't sum to 1.0.
 
-### `tests.md` — user-authored, deterministic only
+### `rubric.md` — the single scoring contract
 
-Ground truth. Human-written. Every block is a deterministic test case. No LLM
-interpretation in the scoring path.
+Ground truth. Human-written. Every `~~~test~~~` block is a deterministic
+evaluation rule with its own `weight`. No LLM interpretation in the scoring
+path. Example:
 
 ```markdown
 ---
 agent: greeter
 version: 1
+baseline_score: 1.00
+epsilon: 0.05
 ---
+
+## Evaluation rules
 
 ~~~test
 id: t1
 name: basic name
+weight: 0.40
 input: "Ada"
 match: contains
 expected: "Hello, Ada"
 samples: 3
 pass_rate: 1.0
 ~~~
+
+~~~test
+id: t2
+name: empty input
+weight: 0.30
+input: ""
+match: contains
+expected: "Hello!"
+samples: 3
+pass_rate: 1.0
+~~~
+
+## Acceptance criterion
+Accept iff:
+  1. candidate_score ≥ baseline_score + epsilon
+  2. zero regressions
+  3. no blocking advisory critic raised
+
+## Improvement policy
+improvement_policy:
+  trigger: manual
+  max_iterations: 3
+  saturated_iterations: 6
+  saturation_threshold: 0.95
+
+## Advisory critics (NOT scored)
+- friendliness
+- brevity
 ```
+
+`baseline_score` is updated automatically on accept. `version` is incremented
+by a human when rubric rules change — this triggers a mandatory rebaseline
+before the next scoring run.
 
 #### `~~~test~~~` block fields
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `id` | string | — | Unique test identifier; must match rubric weight IDs |
+| `id` | string | — | Unique rule identifier within the rubric |
 | `name` | string | — | Human-readable label |
+| `weight` | float | — | Contribution to the final score. Sum across all rules must equal 1.0 ± 0.01 |
 | `input` | string | — | Input passed to the target |
 | `match` | string | — | One of the 8 match types below |
 | `expected` | string/number/list | — | Expected value (type depends on match) |
-| `samples` | int | 3 | Independent invocations per test |
+| `samples` | int | 3 | Independent invocations per rule |
 | `pass_rate` | float | 1.00 | Minimum fraction of samples that must pass |
 | `partial_credit` | boolean | false | If true, `score_t = sample_rate` instead of binary |
 | `normalize` | string | none | `whitespace`, `case`, or `both` |
 | `tolerance` | float | 0 | For `equals_number`: allowed absolute difference |
-| `exercises` | list | [] | Shared skill names this test exercises (informational) |
+| `exercises` | list | [] | Shared skill names this rule exercises (informational) |
 
 #### Match types
 
@@ -96,47 +137,7 @@ Full pseudocode, edge-case tables, and normalization reference →
 
 **Partial credit** (`partial_credit: true`): `score_t = sample_rate`
 Gives gradient signal for near-misses (e.g. 2/3 → 0.67 instead of 0.0).
-Use for soft quality tests; keep binary for hard correctness requirements.
-
-### `rubric.md` — thin, no test data
-
-```markdown
----
-agent: greeter
-baseline_score: 1.00
-epsilon: 0.05
-version: 1
----
-
-## Test weights
-| t1 | 0.40 |
-| t2 | 0.30 |
-| t3 | 0.30 |
-
-## Acceptance criterion
-Accept iff:
-  1. candidate_score ≥ baseline_score + epsilon
-  2. zero regressions
-  3. no blocking advisory critic raised
-
-## Improvement policy
-improvement_policy:
-  trigger: production_count
-  min_production_runs: 10
-  backoff_multiplier: 2.0
-  max_backoff_runs: 100
-  max_iterations: 3
-  saturated_iterations: 6
-  saturation_threshold: 0.95
-
-## Advisory critics (NOT scored)
-- friendliness
-- brevity
-```
-
-`baseline_score` is updated automatically on accept. `version` is incremented
-by a human when rubric rules change — this triggers a mandatory rebaseline
-before the next scoring run.
+Use for soft quality rules; keep binary for hard correctness requirements.
 
 ---
 

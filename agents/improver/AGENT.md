@@ -1,6 +1,6 @@
 ---
 name: improver
-description: Meta-agent that runs a measurable self-improvement loop against any agent or standalone skill. All scoring decisions are deterministic and driven by the target's user-authored test cases.
+description: Meta-agent that runs a measurable self-improvement loop against any agent or standalone skill. All scoring decisions are deterministic and driven by the target's user-authored rubric.md.
 dedicated_skills:
   - ./skills/bootstrap
   - ./skills/propose
@@ -11,7 +11,6 @@ dedicated_skills:
 shared_skills:
   - ../../skills/shared/read-file
 improvement_agent: ../../agents/improver
-tests: ./tests.md
 rubric: ./rubric.md
 self_improvable: false
 ---
@@ -24,7 +23,8 @@ the engine they point at.
 
 Improver runs a closed-loop improvement cycle against a **target** — an
 agent or a standalone skill — guided by that target's **user-authored**
-`tests.md` and a thin `rubric.md` that defines weights and acceptance rules.
+`rubric.md`, which defines the evaluation rules, weights, and acceptance
+criterion in one file.
 
 ## Core principle: scoring is deterministic
 
@@ -49,7 +49,8 @@ waits for the human to provide them. See
 
 ### `run` — execute the improvement loop
 
-Requires the target to have both `tests.md` and `rubric.md`. Loop:
+Requires the target to have a valid `rubric.md` with at least one
+`~~~test~~~` evaluation rule. Loop:
 
 ```
 propose → run → score → (keep|discard) → reflect → repeat
@@ -98,10 +99,10 @@ improvement_policy:
 
 | Skill | Role |
 |---|---|
-| [`bootstrap`](./skills/bootstrap/SKILL.md) | Gate: wait for user-authored `tests.md`, generate starter `rubric.md`, measure first baseline |
+| [`bootstrap`](./skills/bootstrap/SKILL.md) | Gate: wait for user-authored `rubric.md` with evaluation rules, measure first baseline |
 | [`propose`](./skills/propose/SKILL.md) | Draft a candidate diff against the target |
 | [`run`](./skills/run/SKILL.md) | Apply candidate to scratch, exercise target with rubric inputs, capture outputs (multi-sample) |
-| [`score`](./skills/score/SKILL.md) | Deterministic: compute numeric score from outputs and `tests.md`, write verdict |
+| [`score`](./skills/score/SKILL.md) | Deterministic: compute numeric score from outputs and `rubric.md`, write verdict |
 | [`reflect`](./skills/reflect/SKILL.md) | Append verbal lessons (Reflexion-style); run advisory critics; cannot flip verdicts |
 | [`report`](./skills/report/SKILL.md) | Generate `REPORT.md` and update `HISTORY.md`/`INDEX.md` from evidence files |
 
@@ -115,7 +116,8 @@ improvement_policy:
 Improver is self-hosting: its `AGENT.md` is a plain markdown file that a
 future ADAS-style run could, in principle, improve. That recursion is gated
 off in MVP-0 to prevent obvious footguns. To enable it later, flip
-`self_improvable: true` and ship a real `tests.md` for improver.
+`self_improvable: true` and ship a real set of evaluation rules in
+improver's own `rubric.md`.
 
 ## Input contract
 
@@ -143,7 +145,7 @@ format.
 
 ## Safety rules
 
-1. Never write to a target that lacks `tests.md` (bootstrap is the only
+1. Never write to a target that lacks `rubric.md` (bootstrap is the only
    exception, and only to create the template).
 2. Never auto-apply a candidate whose `score` verdict is `reject`.
 3. Never target `agents/improver/` unless `self_improvable: true`.

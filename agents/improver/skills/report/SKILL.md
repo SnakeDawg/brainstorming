@@ -9,7 +9,7 @@ owner: improver
 
 The narrative layer on top of the evidence layer. Everything `report`
 writes is a pure function of files already on disk under
-`memory/runs/<run-id>/` and the target's `tests.md` / `rubric.md`. You
+`memory/runs/<run-id>/` and the target's `rubric.md`. You
 can re-run `report` at any time to regenerate a stale report without
 re-invoking any LLM or re-running the loop.
 
@@ -143,7 +143,7 @@ Repo-wide one-line-per-run table, most recent at the top.
 ▶ improver run agents/greeter
   target    · agents/greeter
   objective · handle empty input
-  tests     · 3 (from agents/greeter/tests.md)
+  rules     · 3 (from agents/greeter/rubric.md)
   samples   · 3 per test
 
   baseline  · 0.40  ████░░░░░░
@@ -179,7 +179,7 @@ any terminal.
 
 ## Hard rules
 
-1. `report` never writes to `tests.md`, `rubric.md`, or any target
+1. `report` never writes to `rubric.md` rule content or any target
    source file.
 2. `HISTORY.md` and `INDEX.md` carry a "do not edit" banner at the top.
    They are append-only from the loop's perspective.

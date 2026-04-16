@@ -1,6 +1,6 @@
 ---
 name: bootstrap
-description: Gate a new target into the improvement loop by waiting for user-authored tests.md and generating a starter rubric.md. Never invents test cases from an LLM.
+description: Gate a new target into the improvement loop by waiting for a user-authored rubric.md and measuring its first baseline. Never invents evaluation rules from an LLM.
 scope: dedicated
 owner: improver
 ---
@@ -9,7 +9,7 @@ owner: improver
 
 **The gate.** No target enters the improvement loop without passing
 through bootstrap first. Bootstrap's job is to ensure a target has a
-valid user-authored `tests.md` and a matching `rubric.md` before any
+valid user-authored `rubric.md` with evaluation rules before any
 `propose`/`run`/`score` activity is allowed.
 
 ## Invocation
@@ -22,10 +22,10 @@ improver bootstrap --rebaseline <target-path>
 `<target-path>` points at an agent directory (`agents/<name>/`) or a
 standalone skill directory (`skills/<name>/`).
 
-**`--rebaseline`**: Re-measures baseline against existing `tests.md` +
-`rubric.md` without touching test content. Triggered manually or
-automatically when `rubric.md` `version` field changes or test IDs change.
-On rebaseline, writes a marker annotation in `HISTORY.md`:
+**`--rebaseline`**: Re-measures baseline against the existing
+`rubric.md` without touching its rule content. Triggered manually or
+automatically when `rubric.md` `version` field changes or rule IDs
+change. On rebaseline, writes a marker annotation in `HISTORY.md`:
 `[rebaseline vN → vM]`.
 
 ## Input
@@ -33,14 +33,13 @@ On rebaseline, writes a marker annotation in `HISTORY.md`:
 | Source | What it provides |
 |---|---|
 | `<target>/AGENT.md` or `<target>/SKILL.md` | target metadata (name, description) |
-| `<target>/tests.md` | (optional, checked) user-authored test cases |
+| `<target>/rubric.md` | (optional, checked) user-authored evaluation rules |
 
 ## Output
 
 | File | Written when |
 |---|---|
-| `<target>/tests.md` | only if missing — an **empty template**, not a draft |
-| `<target>/rubric.md` | only after `tests.md` parses cleanly |
+| `<target>/rubric.md` | only if missing — an **empty template**, not a draft |
 | updated `baseline_score` in `<target>/rubric.md` frontmatter | after first baseline measurement |
 
 ## Flow
@@ -49,87 +48,74 @@ On rebaseline, writes a marker annotation in `HISTORY.md`:
   1. Read <target>/AGENT.md (or SKILL.md for a standalone skill).
      If missing → error, exit.
 
-  2. Check for <target>/tests.md.
+  2. Check for <target>/rubric.md.
        exists?      → step 4
        missing?     → step 3
 
-  3. GATE — do not draft tests with an LLM.
-     Write a TEMPLATE tests.md containing:
-       - frontmatter stub (agent, version)
-       - the full list of supported match types (from score/SKILL.md)
+  3. GATE — do not draft rules with an LLM.
+     Write a TEMPLATE rubric.md containing:
+       - frontmatter stub (name, version, baseline_score: null, epsilon: 0.05)
        - three empty ~~~test~~~ fenced blocks with every field commented
+         (id, name, weight, input, match, expected, samples, pass_rate)
+       - an acceptance-criterion section (scaffold default)
+       - an improvement-policy block (scaffold defaults)
+       - a link to the full match-type reference in execute/SKILL.md
        - a worked example in a markdown comment block
      Print:
-       "tests.md template created at <path>.
-        Please fill in 3+ test cases and re-run `improver bootstrap`."
+       "rubric.md template created at <path>.
+        Please fill in 3+ evaluation rules and re-run `improver bootstrap`."
      EXIT. Do nothing else.
 
-  4. Parse tests.md. Validate every ~~~test~~~ block against the schema
-     defined in score/SKILL.md (see also
+  4. Parse rubric.md. Validate every ~~~test~~~ block against the
+     schema defined in score/SKILL.md (see also
      [execute spec](../../../skills/shared/execute/SKILL.md)).
      Any parse error → print a diff-style error pointing at the bad
      block and exit.
-     After parsing, WARN (non-fatal) for each `contains` test where
+     After parsing, WARN (non-fatal) for each `contains` rule where
      `expected` is an empty string "". Empty expected vacuously passes
      and is almost always an author mistake.
 
-  4.5 VALIDATE tests ↔ rubric (if rubric.md already exists):
-      - Extract test IDs from tests.md.
-      - Extract weight IDs from rubric.md.
-      - If sets differ: print a diff showing added/removed IDs and exit.
-      - Verify weights sum to 1.0 (within tolerance 0.01).
-        If |sum − 1.0| > 0.01: ERROR — print the actual sum and exit.
-        (Matches score pre-flight rule; bootstrap must enforce the same
-        invariant so problems are caught before any run, not during.)
-      This prevents silent breakage when tests.md and rubric.md diverge.
+  4.5 VALIDATE weight sum:
+      - Sum the `weight` field across every ~~~test~~~ block.
+      - If |sum − 1.0| > 0.01: ERROR — print the actual sum and exit.
+        (Matches score pre-flight rule so problems are caught before
+        any run, not during.)
 
-  5. Generate <target>/rubric.md with:
-       - agent: <target-name>
-       - version: 1
-       - baseline_score: null           (populated in step 6)
-       - epsilon: 0.05
-       - test weights: equal across all test ids
-       - acceptance criterion: the scaffold default
-       - improvement_policy: scaffold defaults
-           trigger: manual
-           max_iterations: 3
-           saturated_iterations: 6
-           saturation_threshold: 0.95
-       - advisory critics: none
-     If rubric.md already exists, leave it alone and print a notice.
+  5. Invoke the target with each rule's input (samples = value from
+     the rule, default 3). Route through the `score` skill to compute
+     the first baseline as a pure function of outputs + rubric.md.
 
-  6. Invoke the target with each rubric input (samples = value from
-     tests.md, default 3). Route through the `score` skill to compute
-     the first baseline as a pure function of outputs + tests.md.
+  6. Write baseline_score into <target>/rubric.md frontmatter.
 
-  7. Write baseline_score into <target>/rubric.md frontmatter.
-
-  8. Print a summary:
+  7. Print a summary:
        "bootstrap complete.
         target:         <target>
-        tests:          <N>
+        rules:          <N>
         baseline_score: <X>
         ready:          improver run <target> --objective <...>"
 ```
 
 ## The empty template written in step 3
 
-The `tests.md` template is intentionally non-suggestive. Every field is
-present but blank, so the human has to write the ground truth themselves.
-The template also links back to this SKILL.md and to
-[`score/SKILL.md`](../score/SKILL.md) for the match-type reference.
+The `rubric.md` template is intentionally non-suggestive. Every field is
+present but blank, so the human has to write the evaluation rules
+themselves. The template links to the
+[execute spec](../../../skills/shared/execute/SKILL.md) for the match-type
+reference.
 
 ## What bootstrap NEVER does
 
-- Never calls an LLM to generate test inputs or expected outputs.
-- Never modifies `tests.md` after it is first written (the human owns it).
+- Never calls an LLM to generate rule inputs or expected outputs.
+- Never modifies `rubric.md` rule content after it is first written
+  (the human owns it). `baseline_score` is the only frontmatter field
+  bootstrap writes back.
 - Never runs the improvement loop — that's `propose`/`run`/`score`.
 - Never runs against a target whose `AGENT.md` is missing the required
-  `improvement_agent`, `tests`, or `rubric` frontmatter fields.
+  `improvement_agent` or `rubric` frontmatter fields.
 
 ## Opt-in draft mode (future, not MVP-0)
 
-A future `--draft` flag may let improver *propose* a `tests.md` for the
-human to edit and confirm. Even then, the human must accept every block
-before it is written. Disabled in MVP-0 to keep the ground-truth
-provenance clean.
+A future `--draft` flag may let improver *propose* rubric rules for
+the human to edit and confirm. Even then, the human must accept every
+block before it is written. Disabled in MVP-0 to keep the
+ground-truth provenance clean.

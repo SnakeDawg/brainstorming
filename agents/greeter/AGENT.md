@@ -6,7 +6,6 @@ dedicated_skills:
 shared_skills:
   - ../../skills/shared/read-file
 improvement_agent: ../../agents/improver
-tests: ./tests.md
 rubric: ./rubric.md
 ---
 
@@ -61,7 +60,6 @@ agent's folder — that's what `skills/shared/` is for.
 
 Greeter participates in the scaffold's self-improvement contract:
 
-- [`tests.md`](./tests.md) — user-authored ground-truth test cases
 - [`rubric.md`](./rubric.md) — weights, acceptance criterion, advisory critics
 - [`HISTORY.md`](./HISTORY.md) — append-only improvement trail written by
   [`improver`](../improver/AGENT.md)

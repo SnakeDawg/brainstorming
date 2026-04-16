@@ -3,7 +3,7 @@
 One `~~~test~~~` block per match type (8 pass cases + 2 fail-guard cases).
 
 `score` reads this file using the same `~~~test~~~` parser it uses for any
-`tests.md`. For each block, `score` acts as the evaluator: it runs the
+`rubric.md`. For each block, `score` acts as the evaluator: it runs the
 declared `match` rule with `input` as the simulated target output and
 `expected` (plus any type-specific field) as the expected value, then
 verifies the result matches the declared `meta: pass` or `meta: fail`

@@ -1,9 +1,8 @@
 ---
 name: onboard
-description: Interactive wizard that scaffolds a new agent or skill with correct frontmatter, test templates, and directory layout.
+description: Interactive wizard that scaffolds a new agent or skill with correct frontmatter, a rubric skeleton, and directory layout.
 scope: standalone
 improvement_agent: ../../agents/improver
-tests: ./tests.md
 rubric: ./rubric.md
 ---
 
@@ -17,9 +16,11 @@ so both humans and LLM assistants have a single authoritative source.
 Outputs the generated file contents as a structured listing — one section
 per file, suitable for the executor to write to disk.
 
-**Relationship to bootstrap:** `onboard` generates the skeleton (frontmatter
-+ test stubs). `improver bootstrap` runs next to validate `tests.md`, measure
-the baseline, and generate `rubric.md`. They are complementary, not alternatives.
+**Relationship to bootstrap:** `onboard` generates the skeleton
+(frontmatter + empty `~~~test~~~` rule stubs in `rubric.md`).
+`improver bootstrap` runs next to validate the filled-in rules, measure
+the first baseline, and write `baseline_score` back into `rubric.md`.
+They are complementary, not alternatives.
 
 ## Two modes
 
@@ -92,7 +93,7 @@ Each generated file is output as a fenced section:
 
 <file content>
 
-### agents/<name>/tests.md
+### agents/<name>/rubric.md
 
 <file content>
 ```
@@ -106,20 +107,21 @@ The executor writes each section's content to the indicated path.
 ```
 agents/<name>/
   AGENT.md          ← filled frontmatter + sections with TODO placeholders
-  tests.md          ← 3 typed test stubs with inline guidance
+  rubric.md         ← frontmatter + 3 empty ~~~test~~~ rule stubs with inline guidance
   skills/<dedicated>/
     SKILL.md        ← if dedicated_skills is non-empty
 ```
 
-`rubric.md` is NOT generated — run `improver bootstrap agents/<name>` after
-completing `tests.md`.
+`baseline_score` in `rubric.md` is `null` at scaffold time — run
+`improver bootstrap agents/<name>` after filling in the rules to measure
+the first baseline.
 
 ### `standalone-skill`
 
 ```
 skills/<name>/
   SKILL.md
-  tests.md          ← 3 test stubs
+  rubric.md          ← 3 empty rule stubs
 ```
 
 ### `shared-skill`
@@ -130,7 +132,7 @@ skills/shared/<name>/
   examples.md       ← 2 worked input/output placeholders
 ```
 
-No `tests.md` or `rubric.md` — shared skills are tested via their callers.
+No `rubric.md` — shared skills are exercised via their callers' rubrics.
 
 ### `dedicated-skill`
 
@@ -150,7 +152,7 @@ Raw templates with `{{ }}` placeholder syntax are in
 | [`skill-dedicated.md.tmpl`](./templates/skill-dedicated.md.tmpl) | `SKILL.md` for a dedicated skill |
 | [`skill-standalone.md.tmpl`](./templates/skill-standalone.md.tmpl) | `SKILL.md` for a standalone skill |
 | [`skill-shared.md.tmpl`](./templates/skill-shared.md.tmpl) | `SKILL.md` for a shared skill |
-| [`tests.md.tmpl`](./templates/tests.md.tmpl) | `tests.md` for agents and standalone skills |
+| [`rubric.md.tmpl`](./templates/rubric.md.tmpl) | `rubric.md` for agents and standalone skills |
 | [`examples.md.tmpl`](./templates/examples.md.tmpl) | `examples.md` for shared skills |
 
 ## Rules
@@ -161,11 +163,11 @@ Raw templates with `{{ }}` placeholder syntax are in
    names containing uppercase or underscores.
 3. **Validate description.** Must be a single sentence (no `.` except at end).
 4. **Stub, don't fill.** Leave TODO placeholders for domain-specific content
-   (behavior descriptions, test inputs/outputs). The goal is correct structure,
+   (behavior descriptions, rule inputs/outputs). The goal is correct structure,
    not complete content.
 5. **Remind about next steps.** After writing files, print:
-   - For agents/standalone skills: "Next: fill in tests.md, then run
-     `improver bootstrap <path>`"
+   - For agents/standalone skills: "Next: fill in `rubric.md` evaluation
+     rules, then run `improver bootstrap <path>`"
    - For shared skills: "Next: fill in SKILL.md and examples.md"
    - For dedicated skills: "Next: fill in SKILL.md, then update the owning
-     agent's tests.md with test cases that exercise this skill"
+     agent's `rubric.md` with rules that exercise this skill"

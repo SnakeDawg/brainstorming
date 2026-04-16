@@ -117,14 +117,33 @@ Proposed changes only. Check off as resolved.
 
 ---
 
+# Round 3 — tests.md deleted, rubric.md is the sole scoring contract
+
+The refactor is in. `tests.md` is deleted across the repo; every
+`~~~test~~~` evaluation rule now lives inside the owning target's
+`rubric.md` with an embedded `weight` field. `HOW-TO-TEST.md` at the
+root is the new human-facing copy-paste guide that replaces the old
+per-target tests.md files.
+
+Items below the Round 2 header that dealt with tests.md drift,
+case-sensitivity against tests.md expectations, or tests.md authoring
+UX are **superseded by this refactor** — they can be either closed or
+rescoped to `rubric.md`. Left unchecked for the human to triage.
+
+---
+
 # Round 2 — gaps found in real Windsurf use + new-surface review
 
 The 20 items above are all resolved. The items below were found by:
 (a) scanning `agents/summarizer/` and `skills/onboard/` (new surfaces not
 in the original review), and (b) the user's real Windsurf invocation
 `Run agents/greeter with input "ADA"` returning `hello, Ada! Welcome` —
-which doesn't match `tests.md` and exposes that the docs don't tell
-users how to actually use the scaffold.
+which (against the old tests.md contract) exposed that the docs didn't
+tell users how to actually use the scaffold.
+
+> **Note:** Many of these originally referenced `tests.md`. After the
+> Round 3 refactor they should be read as "evaluation rules in
+> `rubric.md`" — same intent, new location.
 
 ---
 

@@ -6,7 +6,6 @@ dedicated_skills:
 shared_skills:
   - ../../skills/shared/read-file
 improvement_agent: ../../agents/improver
-tests: ./tests.md
 rubric: ./rubric.md
 self_improvable: false
 ---
@@ -76,7 +75,6 @@ Input: "./reports/q2-review.txt"
 
 ## Self-improvement participation
 
-- [`tests.md`](./tests.md) — user-authored ground-truth test cases
 - [`rubric.md`](./rubric.md) — weights, acceptance criterion, advisory critics
 
 To run an improvement cycle:

@@ -1,6 +1,6 @@
 ---
 name: run
-description: Apply a candidate diff to a scratch copy of the target, exercise the target with every test input from tests.md, and capture raw outputs across multiple samples. Handles LLM output variability via multi-sampling.
+description: Apply a candidate diff to a scratch copy of the target, exercise the target with every rule input from rubric.md, and capture raw outputs across multiple samples. Handles LLM output variability via multi-sampling.
 scope: dedicated
 owner: improver
 ---
@@ -24,7 +24,7 @@ See [`AGENT.md`](../../AGENT.md) for the full specification.
 | Source | What it provides |
 |---|---|
 | `memory/runs/<run-id>/candidates/<NNN>.diff.md` | the candidate to apply |
-| `<target>/tests.md` | the list of test cases and their sample counts |
+| `<target>/rubric.md` | the list of evaluation rules and their sample counts |
 | `<target>` files | the unmodified target source |
 
 ## Output
@@ -78,7 +78,7 @@ cost_estimate_usd: <float>        # estimated dollar cost (optional, model-depen
    operation, not by asking an LLM to "apply this change." This removes
    one LLM variability layer from the pipeline.
 3. **Multi-sample.** Every test is invoked `samples` times (from
-   `tests.md`, default 3). All outputs are captured — not just the
+   `rubric.md`, default 3). All outputs are captured — not just the
    first, not an average.
 4. **Isolation.** Samples for different tests are captured in independent
    invocations so cross-test interference is impossible.

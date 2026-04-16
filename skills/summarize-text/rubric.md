@@ -7,26 +7,65 @@ epsilon: 0.05
 
 # Rubric for summarize-text
 
-Standalone skill rubric. Test data lives in [`tests.md`](./tests.md).
-This file defines only weights, acceptance, and advisory critics.
+The scoring contract. Every `~~~test~~~` block below is an evaluation rule.
+See [`../shared/execute/SKILL.md`](../shared/execute/SKILL.md) for the
+full match-type reference.
 
-## Test weights
+## Evaluation rules
 
-| test id | name                    | weight |
-|---------|-------------------------|--------|
-| t1      | short multi-point input | 0.30   |
-| t2      | single-sentence output  | 0.30   |
-| t3      | empty input passthrough | 0.20   |
-| t4      | length bound            | 0.20   |
+~~~test
+id: t1
+name: short multi-point input
+weight: 0.30
+input: "The meeting ran 90 minutes. We agreed to ship v2 next Tuesday, revisit pricing in Q3, and hire two more engineers by end of month. Action items were assigned to Maria and Jon."
+match: contains
+expected: "v2"
+samples: 3
+pass_rate: 1.0
+~~~
 
-Sum = 1.00. Final score = Σ (weight × per-test result), range [0, 1].
+~~~test
+id: t2
+name: single-sentence output
+weight: 0.30
+input: "The meeting ran 90 minutes. We agreed to ship v2 next Tuesday, revisit pricing in Q3, and hire two more engineers by end of month."
+match: regex
+expected: "^[^.!?]*[.!?]\\s*$"
+samples: 3
+pass_rate: 1.0
+~~~
+
+~~~test
+id: t3
+name: empty input passthrough
+weight: 0.20
+input: ""
+match: exact
+expected: ""
+samples: 3
+pass_rate: 1.0
+~~~
+
+~~~test
+id: t4
+name: length bound
+weight: 0.20
+input: "The meeting ran 90 minutes. We agreed to ship v2 next Tuesday, revisit pricing in Q3, and hire two more engineers by end of month. Action items were assigned to Maria and Jon."
+match: length_between
+min: 10
+max: 300
+samples: 3
+pass_rate: 1.0
+~~~
+
+Sum of weights = 1.00.
 
 ## Acceptance criterion
 
 A candidate is accepted iff **all** hold:
 
 1. `candidate_score ≥ baseline_score + epsilon`
-2. no test that passed at baseline now fails
+2. no rule that passed at baseline now fails
 3. no advisory critic marked `blocking: true` raises a flag
 
 ## Advisory critics (NOT scored)
@@ -41,12 +80,11 @@ Neither is `blocking`. Both are logged to
 
 ## Baseline
 
-`baseline_score: null` because this skill has not yet been bootstrapped
-against its tests. Run:
+`baseline_score: null` because this skill has not yet been bootstrapped.
+Run:
 
 ```
 improver bootstrap skills/summarize-text
 ```
 
-to populate the baseline from a first measurement pass. See
-[`../../agents/improver/skills/bootstrap/SKILL.md`](../../agents/improver/skills/bootstrap/SKILL.md).
+to populate the baseline from a first measurement pass.
