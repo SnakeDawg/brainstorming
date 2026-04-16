@@ -114,3 +114,123 @@ Proposed changes only. Check off as resolved.
   `agents/improver/skills/propose/SKILL.md`. Without explicit instructions,
   proposers will emit empty lists. Add a rule that propose MUST consider
   ≥2 approaches and record what was rejected.
+
+---
+
+# Round 2 — gaps found in real Windsurf use + new-surface review
+
+The 20 items above are all resolved. The items below were found by:
+(a) scanning `agents/summarizer/` and `skills/onboard/` (new surfaces not
+in the original review), and (b) the user's real Windsurf invocation
+`Run agents/greeter with input "ADA"` returning `hello, Ada! Welcome` —
+which doesn't match `tests.md` and exposes that the docs don't tell
+users how to actually use the scaffold.
+
+---
+
+## How-to-use docs (highest priority — user-flagged)
+
+- [ ] **No setup instructions per LLM tool.**
+  `README.md` "Use" section. Says "Ask your LLM agent (Claude Code,
+  Windsurf, etc.)" without explaining how to point each tool at this
+  repo (symlink into `.claude/skills/`? open as workspace? root drop?).
+  Add a per-tool subsection: Claude Code, Windsurf, Cursor.
+
+- [ ] **No expected-output example.**
+  `README.md` "Use" section. Real Windsurf output for `input "ADA"` is
+  `hello, Ada! Welcome` — lowercase h, no period, case-normalized name.
+  Show the actual transcript so users can sanity-check their setup.
+
+- [ ] **No "first run" walkthrough.**
+  `README.md`. There's a Create flow with steps but no Use flow with
+  a transcript. Add an end-to-end "try greeter in 30 seconds" section.
+
+- [ ] **Invocation grammar undocumented.**
+  `README.md` "Use" section. `Run agents/greeter with input "Ada"` is
+  shown but never declared as the canonical phrase. Pin one phrasing
+  as the contract (or document equivalents).
+
+- [ ] **summarizer and onboard absent from Use examples.**
+  `README.md` "Use" section. Only greeter and `summarize-text` are
+  exemplified. Add invocation examples for `summarizer` (the new
+  cross-skill agent) and `onboard` (the new wizard).
+
+- [ ] **No troubleshooting section for output drift.**
+  `README.md`. When LLM output diverges from `tests.md` (the case the
+  user just hit), users have no guidance. Add a "what to do when output
+  doesn't match tests" subsection pointing at `improver bootstrap
+  --rebaseline`.
+
+- [ ] **"Prompt corpus, not runtime" never stated.**
+  `README.md` opening. New users will look for an executable. State
+  explicitly that this repo is a corpus of markdown files an LLM agent
+  reads — there is no binary to install or daemon to run.
+
+---
+
+## Tests-vs-reality drift
+
+- [ ] **greeter t1/t2/t3 case-strict; LLM produces lowercase.**
+  `agents/greeter/tests.md`. Observed Windsurf output `hello, Ada!`
+  fails t1 expecting `contains "Hello, Ada"`. Add `normalize: case`
+  to all three tests, OR pin format-greeting to a stricter casing
+  contract.
+
+- [ ] **No test for input case-normalization.**
+  `agents/greeter/tests.md`. User typed `"ADA"` and got `"Ada"` back.
+  Add a t4 covering uppercase input → properly-cased name in output.
+
+- [ ] **summarizer t1 regex `^- .+` is fragile.**
+  `agents/summarizer/tests.md`. The `^` anchor fails if the LLM adds a
+  preamble like "Here's the summary:" before the bullets. Use
+  `(?m)^- ` or replace with `match: contains, expected: "- "`.
+
+- [ ] **summarizer doesn't test the 3–5 bullet count rule.**
+  `agents/summarizer/tests.md`. `format-summary/SKILL.md` strictly
+  requires 3–5 bullets but no test enforces the count. Add a test
+  using `match: regex` with a count constraint or `match: shell` with
+  `grep -c '^- '`.
+
+- [ ] **`baseline_score: 1.00` in greeter/rubric.md is fictional.**
+  `agents/greeter/rubric.md`. Was written by hand assuming post-fix
+  output, never measured against real LLM output. Set to `null` and
+  add a comment "run `improver bootstrap --rebaseline agents/greeter`
+  to populate."
+
+- [ ] **summarizer/HISTORY.md created but never measured.**
+  `agents/summarizer/HISTORY.md`. Same fiction as greeter — appears to
+  show measured runs that never happened. Either delete (not generated
+  yet) or add a "predates first real run" banner.
+
+---
+
+## New-surface gaps (summarizer, onboard)
+
+- [ ] **summarizer "expand single sentence into 3 bullets" encourages padding.**
+  `agents/summarizer/skills/format-summary/SKILL.md` Edge cases section.
+  "Expand into 3 bullets by restating from different angles" is exactly
+  the kind of hallucination an LLM will happily produce. Strike this
+  rule or replace with "return as a single bullet".
+
+- [ ] **onboard interactive mode lacks an end-to-end worked example.**
+  `skills/onboard/SKILL.md`. Describes the question flow but no sample
+  transcript shows what an actual interactive session looks like in a
+  Claude Code conversation. Add one full example (questions + LLM
+  output + final files written).
+
+- [ ] **onboard `{{ }}` placeholder syntax is undefined.**
+  `skills/onboard/SKILL.md` § Templates. Mustache? Handlebars? Plain
+  string substitution? Pick one and document it (or link to a one-page
+  spec).
+
+- [ ] **onboard "output format" — LLM writes files vs human copy-pastes is ambiguous.**
+  `skills/onboard/SKILL.md` § Output format. "The executor writes each
+  section's content to the indicated path" — but the executor IS the
+  LLM. Clarify: does the LLM use file-write tools, or does it print
+  text the human copy-pastes? Different UX.
+
+- [ ] **onboard not mentioned in README "Use" section.**
+  `README.md`. Despite being the primary user-facing creation surface,
+  onboard isn't shown as an invocable skill in the Use section. Add an
+  `Run skills/onboard` example.
+
