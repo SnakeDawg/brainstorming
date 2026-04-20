@@ -1,0 +1,63 @@
+---
+name: {{ name }}
+description: {{ description }}
+{{#if dedicated_skills}}
+dedicated_skills:
+{{#each dedicated_skills}}
+  - ./skills/{{ this }}
+{{/each}}
+{{/if}}
+{{#if shared_skills}}
+shared_skills:
+{{#each shared_skills}}
+  - {{ this }}
+{{/each}}
+{{/if}}
+improvement_agent: ../../agents/improver
+rubric: ./rubric.md
+self_improvable: false
+---
+
+# {{ name }}
+
+{{ description }}
+
+## When to invoke
+
+<!-- TODO: Describe the conditions under which a caller should prefer this
+     agent over doing the work themselves or using a different agent. -->
+
+## How it uses its skills
+
+<!-- TODO: Add a skill-usage table.
+
+| Step | Skill | Purpose |
+|---|---|---|
+| 1 | `shared/read-file` | ... |
+| 2 | `<dedicated-skill>` | ... |
+| 3 | _(return)_ | ... |
+-->
+
+## Worked example
+
+<!-- TODO: Add at least one input → output example showing the full call chain.
+
+Input: `"..."`
+
+1. ...
+2. ...
+3. Return `"..."`
+-->
+
+## Self-improvement participation
+
+- [`rubric.md`](./rubric.md) — user-authored evaluation rules, weights, acceptance criterion, advisory critics
+
+To run an improvement cycle:
+
+```
+improver run agents/{{ name }} --objective "<what to improve>"
+```
+
+See [`../../agents/improver/AGENT.md`](../../agents/improver/AGENT.md) for
+loop details and [`../../README.md`](../../README.md) for the scaffold contract.

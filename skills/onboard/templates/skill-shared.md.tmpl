@@ -1,0 +1,38 @@
+---
+name: {{ name }}
+description: {{ description }}
+scope: shared
+consumers: {{ consumers }}
+---
+
+# {{ name }}
+
+A shared utility skill. Any agent can reference it by adding the path to
+`shared_skills` in its `AGENT.md`. This skill does not ship its own
+`rubric.md` — it is tested through the rubrics of its callers.
+
+## Input
+
+| Field | Type | Notes |
+|---|---|---|
+| <!-- TODO: field name --> | string | <!-- TODO: description --> |
+
+## Output
+
+<!-- TODO: Describe the output type and format. One sentence. -->
+
+## Behavior
+
+```
+input:  <!-- TODO: example input -->
+output: <!-- TODO: example output -->
+```
+
+Edge cases:
+
+- <!-- TODO: empty/null input handling -->
+- <!-- TODO: error case — what to return if the input is invalid -->
+
+## Worked examples
+
+See [`examples.md`](./examples.md) for full input/output pairs.

@@ -1,60 +1,297 @@
-# Brainstorming — AI System Manager POC
+# brainstorming — agent + skills scaffold
 
-Repository for prototyping and iterating on AI-powered system management concepts. Started from vibe-coded samples, evolving toward a functional proof of concept.
+A scaffold for building, running, and self-improving LLM agents using nothing
+but markdown files with YAML frontmatter. An LLM agent (e.g. Claude Code) reads
+`AGENT.md` / `SKILL.md` files and executes the described behavior directly —
+there is no runtime code.
 
-## Repository Structure
+---
+
+## Architecture overview
+
+```mermaid
+flowchart TD
+    subgraph Agents
+        G["agents/greeter\nAGENT.md"]
+        G --> GS["  skills/format-greeting\n  SKILL.md"]
+        G --> GR["  rubric.md"]
+        SUM["agents/summarizer\nAGENT.md"]
+        SUM --> SUMS["  skills/format-summary\n  SKILL.md"]
+        SUM --> SUMR["  rubric.md"]
+    end
+
+    subgraph Improver["agents/improver (meta-agent)"]
+        I[AGENT.md]
+        I --> BS[bootstrap] & PR[propose] & RN[run]
+        I --> SC[score] & RF[reflect] & RP[report]
+    end
+
+    subgraph Skills
+        ST["skills/summarize-text\n(standalone)"] --> STR[rubric.md]
+        OB["skills/onboard\n(standalone)"] --> OBR[rubric.md]
+        SH1["skills/shared/read-file"]
+        SH2["skills/shared/execute\n(canonical spec)"]
+    end
+
+    subgraph Memory
+        MEM["memory/runs/&lt;run-id&gt;/"]
+        MEM --> CAND["candidates/\n*.diff.md · *.run.md\n*.scores.md · *.verdict.md"]
+        MEM --> LES[lessons.md]
+        MEM --> RPT[REPORT.md]
+        IDX[memory/INDEX.md]
+        HIST["agents/&lt;target&gt;/HISTORY.md"]
+    end
+
+    G -->|improvement_agent| I
+    SUM -->|improvement_agent| I
+    I -->|reads| GT & GR
+    I -->|uses| SH1 & SH2
+    SC -->|references| SH2
+    G -->|uses| SH1
+    SUM -->|uses| SH1
+    I -->|writes| MEM & IDX & HIST
+```
+
+---
+
+
+## The three skill archetypes
+
+| # | Archetype | Example | Path |
+|---|---|---|---|
+| 1 | Agent with a **dedicated** skill | `greeter` + `format-greeting` | [`agents/greeter/`](./agents/greeter/AGENT.md) |
+| 1b | Agent with **shared skill reuse** | `summarizer` + `format-summary` + `read-file` | [`agents/summarizer/`](./agents/summarizer/AGENT.md) |
+| 2 | **Standalone** skill (no owning agent) | `summarize-text`, `onboard` | [`skills/summarize-text/`](./skills/summarize-text/SKILL.md) |
+| 3 | **Common shared** skill (any agent) | `read-file`, `execute` | [`skills/shared/read-file/`](./skills/shared/read-file/SKILL.md) |
+
+Rules in one paragraph:
+
+- **Dedicated** skills live *inside* their owning agent at
+  `agents/<agent>/skills/<skill>/` and are referenced by that agent only.
+- **Standalone** skills live at `skills/<skill>/`, are invoked directly,
+  and ship their own `rubric.md`.
+- **Shared** skills live at `skills/shared/<skill>/` and are pulled in
+  by any agent via a relative path in its `AGENT.md` frontmatter.
+  Shared skills MAY ship an `examples.md` with worked input/output pairs.
+  Calling agents SHOULD tag tests that exercise shared skills with
+  `exercises: [shared-skill-name]` in the `~~~test~~~` block.
+
+## Create
+
+### `AGENT.md` frontmatter
+
+| Field | Required | Description |
+|---|---|---|
+| `name` | ✓ | Kebab-case agent identifier |
+| `description` | ✓ | One sentence: what does this agent do? |
+| `improvement_agent` | ✓ | Relative path to `agents/improver` |
+| `rubric` | ✓ | Relative path to `rubric.md` |
+| `dedicated_skills` | — | List of paths to this agent's dedicated skill directories |
+| `shared_skills` | — | List of paths to shared skill directories |
+| `self_improvable` | — | `false` (default); `true` enables ADAS-style self-targeting |
+
+```yaml
+---
+name: greeter
+description: Produce a warm greeting given a person's name.
+dedicated_skills:
+  - ./skills/format-greeting
+shared_skills:
+  - ../../skills/shared/read-file
+improvement_agent: ../../agents/improver
+rubric: ./rubric.md
+self_improvable: false
+---
+```
+
+### `SKILL.md` frontmatter
+
+| Field | Required | Scope | Description |
+|---|---|---|---|
+| `name` | ✓ | all | Kebab-case identifier |
+| `description` | ✓ | all | One sentence: what does this skill do? |
+| `scope` | ✓ | all | `dedicated`, `standalone`, or `shared` |
+| `owner` | ✓ | dedicated | Owning agent name |
+| `improvement_agent` | ✓ | standalone | Path to `agents/improver` |
+| `rubric` | ✓ | standalone | Path to `rubric.md` |
+| `consumers` | — | shared | `any` or list of agent names (informational) |
+
+### Directory layout
 
 ```
-brainstorming/
-├── Andy/                          # Original sample apps (prototypes)
-│   ├── sampleapp/                 # AI System Manager — dashboard + AI assistant
-│   └── Oboarding/                 # Onboarding Assistant — 14-phase setup wizard
-├── .analysis/                     # Codebase analysis & documentation
-│   ├── README.md                  # Mentor-style architecture overview
-│   ├── sampleapp.md               # Deep dive: AI System Manager
-│   └── oboarding.md               # Deep dive: Onboarding Assistant
-└── README.md                      # This file
+agents/<name>/
+  AGENT.md                ← required
+  rubric.md               ← required, human-authored (scoring contract)
+  skills/<skill-name>/
+    SKILL.md
+  HISTORY.md              ← auto-generated, do not edit
+
+skills/<name>/            ← standalone skill
+  SKILL.md
+  rubric.md
+
+skills/shared/<name>/     ← shared skill
+  SKILL.md
+  examples.md             ← optional worked input/output pairs
 ```
 
-## Quick Start
+### Quickstart
 
-**AI System Manager** (dashboard with AI chat, marketplace, system tools):
-```bash
-cd Andy/sampleapp
-npm install
-npm run dev
+1. Create the directory at the correct path for the archetype.
+2. Write `AGENT.md` or `SKILL.md` with required frontmatter.
+3. Write `rubric.md` with 3+ `~~~test~~~` evaluation rules (weights must sum to 1.0).
+4. Run `improver bootstrap <path>` — validates syntax, measures the first baseline, writes `baseline_score` into `rubric.md`.
+
+> **Onboard wizard**: [`skills/onboard/`](./skills/onboard/SKILL.md)
+> scaffolds steps 1–3 interactively with archetype selection and rubric
+> templates.
+
+---
+
+## Use
+
+### Invoke an agent
+
+Ask your LLM agent (Claude Code, Windsurf, etc.):
+
+```
+Run agents/greeter with input "Ada"
 ```
 
-**Onboarding Assistant** (guided setup wizard with persona detection):
-```bash
-cd Andy/Oboarding
-npm install
-npm run dev
+The LLM reads `AGENT.md`, loads the declared skills, and executes. Output
+follows the contract defined in the skill's `## Behavior` section.
+
+### Invoke a standalone skill
+
+```
+Run skills/summarize-text with input "<your text>"
 ```
 
-System Manager opens at **http://localhost:3000**, Onboarding at **http://localhost:5173**.
+### Response contract
 
-## Tech Stack
+Each `SKILL.md` defines its input/output shape in a `## Behavior` section.
+Shared skills ship `examples.md` with worked input/output pairs.
 
-| Technology | Purpose |
-|-----------|---------|
-| React | UI framework |
-| TypeScript | Type safety (Onboarding app) |
-| Vite | Build tool & dev server |
-| Tailwind CSS | Utility-first styling |
-| Framer Motion | Animations (Onboarding app) |
-| Lucide React | Icon library |
-| React Router | Client-side routing |
-| React Markdown | Markdown rendering (System Manager) |
+---
 
-## What's Next
+## Test locally
 
-This repository is an iterative exploration space. The sample apps demonstrate UI concepts and interaction patterns for AI-powered system management. Direction for the POC is TBD — the prototypes serve as a starting point for discussion and iteration.
+### Run a test manually
 
-For a detailed understanding of the codebase, start with the [analysis docs](.analysis/README.md).
+For hand-runnable example invocations per agent/skill, see
+[`HOW-TO-TEST.md`](./HOW-TO-TEST.md) at the repo root.
 
-## Contributing
+For the automated scoring path:
 
-1. Create a feature branch from `main`
-2. Make your changes
-3. Submit a pull request for review
+1. Take the `input` value from a `~~~test~~~` block in `rubric.md`.
+2. Invoke the agent or skill with that input.
+3. Compare output against `expected` using the declared `match` rule.
+   Supported types: `exact`, `contains`, `not_contains`, `regex`,
+   `json_path`, `length_between`, `equals_number`, `shell`.
+   Full pseudocode + edge cases:
+   [`skills/shared/execute/SKILL.md`](./skills/shared/execute/SKILL.md)
+
+4. For `samples: N` rules, repeat N times — pass iff `passed/N ≥ pass_rate`.
+
+### Validate `rubric.md` syntax and measure baseline
+
+```
+improver bootstrap <target-path>
+```
+
+Parses every `~~~test~~~` block, verifies weights sum to 1.0, and
+measures the first baseline.
+
+### Rebaseline after rubric changes
+
+```
+improver bootstrap --rebaseline <target-path>
+```
+
+Re-invokes the target and overwrites `baseline_score` in `rubric.md`.
+
+> **Warning:** `--rebaseline` re-invokes the target and overwrites
+> `baseline_score` in `rubric.md`. It is not a dry-run lint.
+
+---
+
+## The self-improvement agent
+
+[`agents/improver`](./agents/improver/AGENT.md) is a meta-agent that runs a
+measurable improvement loop against any target. **Scoring is deterministic**
+— LLMs propose diffs; a fixed rule engine decides accept/reject. No LLM judges
+output quality.
+
+| Skill | Role |
+|---|---|
+| [`bootstrap`](./agents/improver/skills/bootstrap/SKILL.md) | Gate a new target into the loop; wait for user-authored `rubric.md` |
+| [`propose`](./agents/improver/skills/propose/SKILL.md) | Draft a candidate diff (the creative step) |
+| [`run`](./agents/improver/skills/run/SKILL.md) | Apply candidate to scratch, exercise target, multi-sample outputs |
+| [`score`](./agents/improver/skills/score/SKILL.md) | **Deterministic** scoring — the only accept/reject authority |
+| [`reflect`](./agents/improver/skills/reflect/SKILL.md) | Reflexion-style verbal memory; advisory critics (never flip verdicts) |
+| [`report`](./agents/improver/skills/report/SKILL.md) | User-friendly `REPORT.md` + append `HISTORY.md` and `INDEX.md` |
+
+## Improvement loop sequence
+
+```mermaid
+sequenceDiagram
+    participant H as Human
+    participant B as bootstrap
+    participant P as propose
+    participant R as run
+    participant S as score
+    participant RF as reflect
+    participant RP as report
+
+    H->>B: improver bootstrap agents/greeter
+    B->>H: GATE: write rubric.md template
+    H->>B: fills in rubric.md rules, re-runs bootstrap
+    B->>B: validate ~~~test~~~ blocks + weight sum = 1.0
+    B->>B: measure baseline
+    B-->>H: ready: baseline_score = 0.40
+
+    loop up to max_iterations
+        H->>P: improver run (or auto-triggered)
+        P->>P: read rubric.md, lessons.md
+        P-->>R: candidates/001.diff.md (+ reasoning_chain)
+        R->>R: apply diff to scratch copy
+        R->>R: invoke target × samples per test
+        R-->>S: candidates/001.run.md
+        S->>S: match outputs vs expected (deterministic)
+        S->>S: compute candidate_score, detect regressions
+        S-->>RF: 001.scores.md + 001.verdict.md
+
+        alt verdict ACCEPT
+            S->>S: apply diff to live target
+            S->>S: update baseline_score in rubric.md
+        else verdict REJECT
+            S->>S: discard scratch — live target unchanged
+        end
+
+        RF->>RF: append lesson (intent vs outcome)
+        RF->>RF: run advisory critics (never flip verdict)
+        RF-->>P: lessons.md updated
+    end
+
+    RP->>RP: assemble REPORT.md from evidence files
+    RP->>RP: append row to HISTORY.md + INDEX.md
+    RP-->>H: REPORT.md (regeneratable, zero LLM calls)
+```
+
+For the full specification — improvement policy, backoff, cost tracking, rubric
+versioning, rebaseline, scorer self-test, worked example, and research roadmap
+→ **[`SELF-IMPROVEMENT.md`](./SELF-IMPROVEMENT.md)**
+
+---
+
+## Non-goals
+
+- No Python/TS runtime, no registry/loader code. Everything is plain markdown.
+- No `.claude/` wiring or auto-discovery.
+- `improver` is self-hosting but `self_improvable: false` in MVP-0 gates ADAS-style self-targeting.
+- No CI-level contract enforcement yet — bootstrap is the gate.
+
+## References
+
+Full bibliography → [`RESEARCH.md`](./RESEARCH.md)
+
