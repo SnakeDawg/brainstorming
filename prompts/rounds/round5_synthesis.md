@@ -1,12 +1,32 @@
 # Round 5 — Synthesis
 
 Step fully out of dialogue. Hermes (the moderator) now produces the final
-**structured artifact** for this workshop. This is what gets handed to leadership,
-saved to `outputs/`, and scored against `evaluation/rubric.md`.
+**structured artifact** for this workshop. This is what gets handed to
+leadership, scored against `evaluation/rubric.md`, and saved to:
 
-Produce a single markdown document with the exact structure below. Do not invent
-new sections; do not skip sections. If a section has nothing to report, write
-"None surfaced in this session" — never delete the heading.
+- `<project>/hermes/<scenario_id>--<topic-slug>.md` if the operator supplied
+  a `Project:` at kickoff (creates the directory if missing — mirrors the
+  operation-ghostwriter convention so future ports are mechanical), **or**
+- `outputs/<YYYY-MM-DD>-<scenario_id>-<tag>-run.md` if no project was
+  supplied (gitignored locally; the operator copies it where they want).
+
+**Structure source.** If the active scenario file declares a `Synthesis
+structure` section, follow that structure verbatim. Otherwise use the
+default template below.
+
+The default template:
+
+Produce a single markdown document with the exact structure below. Do not
+invent new sections; do not skip sections. If a section has nothing to
+report, write "None surfaced in this session" — never delete the heading.
+
+If research was loaded, every claim that came from research must keep its
+`[mi-N]` / `[ca-N]` citation, and the final document must include a
+**Bibliography** section mapping each citation to its source document
+(e.g., `[mi-7]` → `<project>/market-intelligence/<topic-slug>.md` §3).
+If no research was loaded, prepend a one-line banner at the top of the
+synthesis: `> **Note:** This run is research-unrooted — all claims are
+persona instinct, not evidence.`
 
 ```markdown
 # <Scenario display title> — Synthesis
@@ -63,6 +83,16 @@ A short paragraph from Hermes, OUT of character, flagging:
 - Where the simulation surfaced something that felt genuinely useful
 - Where the simulation felt thin or generic
 - What additional persona / team / data would have improved this run
+- If research was loaded: where the personas leaned on it productively
+  vs. where they argued past it
+
+## 10. Bibliography
+*(Include only if research was loaded.)*
+
+For every `[mi-N]` and `[ca-N]` citation used in this synthesis, list:
+- Citation tag (`[mi-7]`, `[ca-3]`, etc.)
+- Source document path
+- Section / claim referenced
 ```
 
 End with:

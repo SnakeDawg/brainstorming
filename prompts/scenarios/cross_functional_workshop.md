@@ -3,6 +3,7 @@
 **Scenario ID:** `cross_functional_workshop`
 **Default teams:** Commercial Strategy Team + Customer Reality Team
 **Topic:** `{{topic}}`  *(supplied by the operator at invocation)*
+**Research grounding:** optional — runs unrooted if no `Project:` is supplied.
 
 ---
 
@@ -25,6 +26,19 @@ If the operator did not supply teams, default to the two listed above.
 
 These are tendencies, not lines — let the personas behave as their profiles
 dictate.
+
+## Convergence target
+
+Round 4 must converge on **the top 5 requirements** for `{{topic}}`. Each
+slot carries: title, rationale, champion, concessions made, dependencies,
+risks. Contested slots are honest CONTESTED entries listing the competing
+options and their supporters. (Round 4 prompt has the full output template.)
+
+## Synthesis structure
+
+Round 5 produces the synthesis at the structure in
+`prompts/rounds/round5_synthesis.md` — that is the scenario default. No
+override.
 
 ## Acknowledgment (do this now)
 

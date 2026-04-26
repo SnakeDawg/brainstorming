@@ -9,7 +9,10 @@ the teams, and the topic.
 
 ## TL;DR — the invocation
 
-Whichever path you pick, your first message to Claude is:
+Your first message to Claude is one of two shapes — pick based on whether
+you have an operation-ghostwriter project with research already done.
+
+**Unrooted (instinct-only):**
 
 ```
 Read prompts/system_prompt.md and follow it.
@@ -19,14 +22,32 @@ Teams: Team A, Team B
 Topic: <your topic in one sentence>
 ```
 
-Claude will resolve teams against `teams/teams.yaml`, load the personas, load
-the scenario file from `prompts/scenarios/`, and produce the acknowledgment.
-Then you send the round prompts in order.
+**Research-grounded (recommended for portfolio / strategic scenarios):**
 
-To **change the topic**, edit the `Topic:` line. To **change the teams**, edit
-the `Teams:` line (any alias works: `Team A`, `commercial_strategy`, or
-`Commercial Strategy Team`). To **change the scenario**, edit the `Scenario:`
-line and add a new file under `prompts/scenarios/` if it doesn't exist.
+```
+Read prompts/system_prompt.md and follow it.
+
+Scenario: commercial_portfolio_roadmap
+Teams: Team A, Team B
+Topic: 2026 commercial portfolio roadmap
+Project: /path/to/projects/2026-portfolio/
+```
+
+When `Project:` is supplied, Hermes reads the project's
+`market-intelligence/research-index.md` and
+`competitive-analysis/research-index.md`, loads the relevant `{topic-slug}.md`
+documents, and personas cite `[mi-N]` / `[ca-N]` references throughout. The
+final synthesis lands at `<project>/hermes/<scenario_id>--<topic-slug>.md`
+to sit alongside the other Ghostwriter outputs. Run unrooted only when you
+*want* an instinct-only simulation — the round 5 artifact will carry an
+explicit "research-unrooted" banner so consumers know.
+
+To **change the topic**, edit the `Topic:` line. To **change the teams**,
+edit the `Teams:` line (any alias works: `Team A`, `commercial_strategy`,
+or `Commercial Strategy Team`). To **change the scenario**, edit the
+`Scenario:` line and add a new file under `prompts/scenarios/` if it
+doesn't exist. To **swap projects**, change the `Project:` line — same
+scenario, different research basis.
 
 ---
 
@@ -98,6 +119,79 @@ yourself running it more than a couple of times, switch to Path A or B.
 
 ---
 
+## Research-grounded runs (with `Project:`)
+
+When you point Hermes at an operation-ghostwriter project, the simulation
+reads real research instead of running on persona instinct. This is the
+recommended path for portfolio, strategy, and roadmap scenarios.
+
+**Prerequisites:**
+
+1. The project exists at `projects/<name>/` and follows the
+   operation-ghostwriter convention.
+2. At least one of the following indexes is present:
+   - `<project>/market-intelligence/research-index.md`
+   - `<project>/competitive-analysis/research-index.md`
+3. The `{topic-slug}.md` documents listed in those indexes exist on disk.
+
+**Operator workflow:**
+
+1. In your operation-ghostwriter setup, run `market-intelligence` and
+   `competitive-analysis` on the topic. Let them complete normally —
+   citations, sources, indexes, all of it.
+2. From the brainstorming repo (or wherever Claude can read the project
+   files), invoke Hermes with the `Project:` line pointing at the project
+   root. Same scenario / teams / topic syntax as the unrooted form.
+3. Read the acknowledgment carefully. Hermes lists which research
+   documents it loaded and which key questions it'll lean on. **If the
+   research load looks wrong**, stop and re-invoke with a sharper topic
+   string — the synthesis is only as good as the research grounding.
+4. Run rounds 1–5 normally. Personas should cite `[mi-N]` and `[ca-N]`
+   throughout — if they aren't, Hermes is leaking back to instinct mode;
+   re-prompt with "you have research loaded, rounds 1–4 must cite it."
+5. Round 5 lands at `<project>/hermes/<scenario_id>--<topic-slug>.md`
+   automatically. The synthesis preserves citations and ends with a
+   bibliography mapping each `[mi-N]` / `[ca-N]` back to its source.
+6. Score with `evaluation/rubric.md` as usual. The rubric works for both
+   rooted and unrooted runs.
+
+**Updating research between Hermes runs:** if you re-run
+`market-intelligence` or `competitive-analysis` and the document slugs
+change, re-invoke Hermes — it'll load the updated docs because it reads
+the indexes fresh each time.
+
+**Mixing rooted and unrooted runs:** fine. Run unrooted first to surface
+where the team's instincts are, run rooted second on the same topic to
+see where the research disagrees. The two synthesis artifacts side-by-side
+are often more useful than either alone.
+
+---
+
+## Hermes vs. boardroom (when to use which)
+
+Both Hermes and the `boardroom` skill in operation-ghostwriter are
+research-grounded multi-persona pressure-test simulations. They overlap
+in shape but serve different points in the workflow:
+
+| Dimension | Hermes | boardroom |
+|---|---|---|
+| **When in the workflow** | Before there's a direction (PRD / strategy) — surfacing inputs to it | After there's a direction — pressure-testing the decision |
+| **Cast** | Functional roles: Sales, PDM, Marketing, Support, Services | Leadership archetypes: President, CFO, CTO, etc. |
+| **Output** | Surfaced requirements, conflicts, open questions, gaps | Go / no-go judgment, identified blind spots, sharpened angles |
+| **Feeds into** | `prd-definition`, `strategy-analyst` | Final go/no-go decision |
+
+A typical full sequence: market-intelligence + competitive-analysis →
+**Hermes** → prd-definition → **boardroom** → execution. Hermes' synthesis
+can be input to either prd-definition (most common) or directly to
+boardroom (as background context for the exec review).
+
+If you find yourself reaching for "boardroom" when what you actually need
+is mid-level cross-functional alignment on what to build, that's Hermes.
+If you're reaching for "Hermes" but your input is already a finalized
+PRD, that's boardroom.
+
+---
+
 ## Model selection
 
 - **`claude-sonnet-4-6`** — default, fast, strong persona fidelity. The right
@@ -112,11 +206,16 @@ yourself running it more than a couple of times, switch to Path A or B.
 
 ## Saving and scoring
 
-- Save round 5's synthesis to `outputs/<YYYY-MM-DD>-<tag>-run.md`. The
-  `outputs/` dir is gitignored by default — `git add -f` if you want a
-  specific run committed.
-- Score the run against `evaluation/rubric.md`. Capture per-criterion score +
-  evidence inline at the bottom of the saved synthesis. Target: **≥ 14 / 18**.
+- **Project-grounded runs** save the synthesis to
+  `<project>/hermes/<scenario_id>--<topic-slug>.md` automatically (the
+  scenario instructs Hermes to do this). It sits next to
+  `market-intelligence/` and `competitive-analysis/` in the project tree.
+- **Unrooted runs** should be saved manually to
+  `outputs/<YYYY-MM-DD>-<tag>-run.md` in this repo. The `outputs/` dir is
+  gitignored by default — `git add -f` if you want a specific run committed.
+- Score every run against `evaluation/rubric.md`. Capture per-criterion
+  score + evidence inline at the bottom of the saved synthesis. Target:
+  **≥ 14 / 18**.
 
 ---
 
