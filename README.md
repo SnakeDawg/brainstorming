@@ -24,8 +24,9 @@ repeatable simulation.
 ├── teams/
 │   └── teams.yaml             # team rosters + scenario config
 ├── prompts/
-│   ├── system_prompt.md       # moderator framing for Claude
-│   ├── simulation_prompt.md   # the kickoff
+│   ├── system_prompt.md       # moderator framing + invocation contract
+│   ├── scenarios/
+│   │   └── cross_functional_workshop.md   # one file per scenario
 │   └── rounds/
 │       ├── round1_opening.md
 │       ├── round2_cross_examination.md
@@ -38,10 +39,30 @@ repeatable simulation.
 
 ## Quick start
 
-1. Read [`REQUIREMENTS.md`](./REQUIREMENTS.md) for the why.
-2. Open [`runbook.md`](./runbook.md) and follow it end-to-end.
-3. Score the run with [`evaluation/rubric.md`](./evaluation/rubric.md). Target
-   ≥14/18 on a baseline run.
+The operator's job is one message:
+
+```
+Read prompts/system_prompt.md and follow it.
+
+Scenario: cross_functional_workshop
+Teams: Team A, Team B
+Topic: <your topic in one sentence>
+```
+
+…sent to Claude in an environment that can read these files (Claude Code in
+this repo, or a claude.ai Project with the files synced). Claude resolves the
+teams, loads the personas, runs the kickoff acknowledgment, and waits for
+round prompts.
+
+To **change topic**, edit the `Topic:` line. To **change teams**, edit the
+`Teams:` line — any alias works (`Team A`, `commercial_strategy`, or
+`Commercial Strategy Team`). To **change scenario**, edit the `Scenario:` line
+and add a new file under `prompts/scenarios/`.
+
+For the full procedure (including a no-file-access fallback), see
+[`runbook.md`](./runbook.md). Score with
+[`evaluation/rubric.md`](./evaluation/rubric.md); target ≥14/18 on a baseline
+run.
 
 ## Default model
 

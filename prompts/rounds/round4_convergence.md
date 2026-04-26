@@ -1,8 +1,8 @@
 # Round 4 — Convergence
 
-Now negotiate. The team must converge on **the top 5 requirements** for the next
-commercial platform. This is in-character group dialogue, not a moderator
-monologue.
+Now negotiate. The team must converge on **the top 5 requirements** for the
+topic the operator supplied at kickoff. This is in-character group dialogue,
+not a moderator monologue.
 
 Constraints:
 

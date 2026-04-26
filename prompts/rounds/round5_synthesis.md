@@ -9,10 +9,11 @@ new sections; do not skip sections. If a section has nothing to report, write
 "None surfaced in this session" — never delete the heading.
 
 ```markdown
-# Cross-Functional Requirements Workshop — Synthesis
+# <Scenario display title> — Synthesis
 
-**Scenario:** cross_functional_workshop
-**Teams:** Commercial Strategy Team (Sales, PDM, Marketing) + Customer Reality Team (Support, Services)
+**Scenario:** <scenario_id from kickoff>
+**Topic:** <topic supplied by the operator at kickoff>
+**Teams:** <each participating team's display name and roster, from the acknowledgment>
 **Date:** <fill in today's date>
 
 ## 1. Top 5 Requirements
@@ -28,12 +29,13 @@ For each requirement:
 - **Risks**
 
 ## 2. Inputs Needed (by role)
-For each of the 5 personas, list the inputs they explicitly said they need to
-move forward. Pull from round 1 "missing input" + round 3 "missing inputs" table.
+For each persona on the roster, list the inputs they explicitly said they need
+to move forward. Pull from round 1 "missing input" + round 3 "missing inputs"
+table.
 
 ## 3. Outputs Produced (by role)
-For each of the 5 personas, list the deliverables they own that other personas
-in this workshop are downstream of.
+For each persona on the roster, list the deliverables they own that other
+personas in this workshop are downstream of.
 
 ## 4. Cross-Functional Dependencies
 Bulleted list. Format: "<deliverable> — produced by <persona/team> — consumed by
@@ -50,7 +52,7 @@ Include who raised it and who would need to answer.
 ## 7. Risks
 The risks called out in round 4 plus any structural risks the moderator can see
 across the workshop (e.g., "no engineering voice in the room means feasibility
-is unverified").
+is unverified" — adjust based on which teams were actually in the room).
 
 ## 8. Next Steps
 Concrete actions, each with: action, owner (persona or named role outside the
