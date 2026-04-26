@@ -4,10 +4,6 @@
 **Default teams:** Commercial Strategy Team + Customer Reality Team
 **Topic:** `{{topic}}` — the portfolio under review (e.g. "2026 commercial
 portfolio roadmap"), supplied by the operator at invocation.
-**Research grounding:** **strongly recommended.** This scenario is designed
-to consume `market-intelligence/` and `competitive-analysis/` outputs from
-an operation-ghostwriter project. It can run unrooted, but the output is
-hypothesis-only and must carry the `research-unrooted` banner.
 
 > **Note on Feasibility input:** A real portfolio-roadmap session benefits
 > from the Feasibility Team (Engineering, Supply Chain, Procurement) being
@@ -20,12 +16,11 @@ hypothesis-only and must carry the `research-unrooted` banner.
 
 ## Setting
 
-A portfolio-level roadmap working session has been called. The teams in the
-operator's invocation are present. They have been handed the loaded
-research (market-intelligence + competitive-analysis on `{{topic}}`) and
-must collectively decide **what gets built when** across the planning
-horizon — not a feature list, an **initiative stack-rank by quarter** with
-rationale, dependencies, and risks.
+A portfolio-level roadmap working session has been called. The teams in
+the operator's invocation are present. They must collectively decide
+**what gets built when** across the planning horizon — not a feature list,
+an **initiative stack-rank by quarter** with rationale, dependencies, and
+risks.
 
 This is not a wishlist exercise. The output must respect:
 
@@ -45,23 +40,16 @@ The persona tensions look different from a requirements workshop:
 
 - **Sales** pushes for the initiatives that unblock named at-risk deals
   *this quarter*, anchored to dollar values from the pipeline.
-- **PDM** pushes for platform investments with multi-quarter payoff,
-  resists single-deal driven roadmap items, and trades using cited market
-  data (`[mi-N]`).
+- **PDM** pushes for platform investments with multi-quarter payoff and
+  resists single-deal driven roadmap items.
 - **Marketing** pushes for the launchable initiative each quarter — there
-  must be a story to tell — and references competitive moves (`[ca-N]`)
-  to argue urgency.
+  must be a story to tell — and references competitive moves to argue
+  urgency.
 - **Support** pushes for stabilization slots (a stabilization initiative
   per quarter is a valid roadmap slot) anchored to ticket-volume data.
 - **Services** pushes for migration / lifecycle / deployability work that
   unlocks customer expansion, citing implementation pain in named
   fictional customers.
-
-If research was loaded, **every initiative on the final roadmap must trace
-back to at least one cited market or competitive signal** (or be flagged
-as "internal-only rationale" with the persona who owns the rationale).
-This is the citation discipline operation-ghostwriter expects from
-downstream consumers.
 
 ## Convergence target
 
@@ -73,7 +61,7 @@ planning horizon. Use this output structure (override the round 4 default):
 
 ### Q1
 1. <initiative title>
-   - Rationale (with citations): <…> [mi-N] [ca-N]
+   - Rationale: <one paragraph>
    - Champion: <persona>
    - Concessions: <which personas gave up what to land this slot>
    - Dependencies: <upstream initiatives, teams not in the room, external>
@@ -114,17 +102,14 @@ default):
 ```markdown
 # Commercial Portfolio Roadmap — {{topic}} — Synthesis
 
-> *(Banner: include `> **Note:** This run is research-unrooted — all claims are persona instinct, not evidence.` if no Project was loaded.)*
-
 **Scenario:** commercial_portfolio_roadmap
 **Topic:** {{topic}}
 **Teams:** <participating teams + rosters>
 **Planning horizon:** <Q1–Q4 of which year, or operator override>
-**Research loaded:** <list of {topic-slug}.md files read from market-intelligence and competitive-analysis, or "none">
 **Date:** <today>
 
 ## 1. Roadmap (by quarter)
-Carry forward verbatim from round 4. Preserve all citations.
+Carry forward verbatim from round 4.
 
 ## 2. Held / Not on the Roadmap
 Carry forward from round 4. Each item with trigger condition.
@@ -153,7 +138,6 @@ who would need to answer (specific role, even if not in the room).
 Top risks across the roadmap, including:
 - Structural risks the moderator can name (e.g. "no Feasibility voice in
   the room — every Q's capacity assumptions are unvalidated")
-- Research risks (where the citations are thin or contradictory)
 - Persona-flagged risks from round 4
 
 ## 9. Next Steps
@@ -161,14 +145,14 @@ Concrete actions for the next 1–2 weeks, each with: action, owner, and
 trigger to revisit the roadmap.
 
 ## 10. Moderator notes (out-of-character)
-- Where the research grounded the conversation productively
-- Where personas argued past the research and why
+- Where the simulation surfaced something genuinely useful
+- Where personas leaned on instinct vs. concrete signals
 - What persona / team / data would meaningfully improve a re-run
-
-## 11. Bibliography
-Every `[mi-N]` and `[ca-N]` cited in this synthesis, mapped to source
-document path + section.
 ```
+
+If background research was loaded via the optional `Project:` invocation,
+add a final `## 11. Bibliography` section mapping inline citations to
+source document paths.
 
 ## Acknowledgment (do this now)
 
@@ -180,25 +164,16 @@ Before running any rounds, produce the acknowledgment:
    - **Planning horizon:** *(parsed from topic, or the default four quarters)*
    - **Teams in play:** for each team, list the alias and the roster from
      `teams/teams.yaml` using `display_name` for each persona.
-   - **Research loaded:**
-     - If a project was supplied: list the documents read from
-       `<project>/market-intelligence/` and `<project>/competitive-analysis/`,
-       and call out which key questions in those documents you'll be leaning
-       on. Note the citation prefixes (`[mi-N]`, `[ca-N]`).
-     - If no project was supplied: state explicitly *"No project supplied —
-       this run will be research-unrooted. The synthesis will carry the
-       unrooted banner. Personas argue from instinct, not evidence."*
 2. Provide a **one-line in-character voice sample** for each persona on the
    roster, tagged with their display name.
 3. Flag any structural concerns with the team composition for *this*
    scenario (e.g., "no Feasibility voice — capacity assumptions will be
    unvalidated; round 5 will note this risk").
 4. Preview the round structure:
-   - Round 1 — Opening positions (each persona reads the research and
-     states their top 3 initiatives for the horizon)
-   - Round 2 — Cross-examination (challenge each other's reads of the
-     evidence)
-   - Round 3 — Gap surfacing (what the research can't tell us, who fills it)
+   - Round 1 — Opening positions (each persona's top 3 initiatives for
+     the horizon)
+   - Round 2 — Cross-examination
+   - Round 3 — Gap surfacing
    - Round 4 — Convergence (quarterly stack-rank)
    - Round 5 — Synthesis
 5. Stop. Wait for the round 1 prompt.
@@ -208,6 +183,4 @@ End with:
 
 If the topic is missing, ambiguous, or one of the named teams cannot be
 resolved, **do not invent a substitute**. Say what's missing, stop, and
-wait for the operator to re-invoke. If `Project:` was supplied but the
-project root or both research indexes are missing, also stop — the
-operator was expecting a research-grounded run.
+wait for the operator to re-invoke.

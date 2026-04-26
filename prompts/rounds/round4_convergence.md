@@ -16,8 +16,6 @@ Constraints (apply to every scenario):
 - If the team genuinely cannot converge on a slot, leave it as a **contested
   slot** with the competing options and who is on each side. Better to be
   honest than to fake agreement.
-- If research was loaded, citations from rounds 1–2 carry forward —
-  preserve `[mi-N]` and `[ca-N]` references on the rationale they support.
 
 Run the negotiation as dialogue, then close the round with the structured
 output the scenario specifies. The default structure (used when the
@@ -27,7 +25,7 @@ scenario doesn't override) is:
 ## Agreed Top 5 Requirements (or contested)
 
 1. <requirement title>
-   - Rationale: <one paragraph, citing [mi-N] / [ca-N] where research applies>
+   - Rationale: <one paragraph>
    - Champion: <persona who pushed for it>
    - Concessions made to get it on the list: <which personas gave up what>
    - Dependencies: <other teams / inputs needed>
@@ -48,6 +46,10 @@ If a slot is contested, mark it:
 If the scenario file declares a different convergence target (e.g. a
 quarterly initiative stack-rank instead of a top-5 list), use **that**
 structure verbatim and ignore the default above.
+
+If background research was loaded via the optional `Project:` invocation,
+preserve any inline citations (e.g. `[mi-N]`, `[ca-N]`) in rationale
+fields. If no project was loaded, no citations are needed — proceed.
 
 End with:
 > `--- end of round 4 ---`

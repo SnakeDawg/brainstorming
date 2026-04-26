@@ -3,7 +3,6 @@
 **Scenario ID:** `cross_functional_workshop`
 **Default teams:** Commercial Strategy Team + Customer Reality Team
 **Topic:** `{{topic}}`  *(supplied by the operator at invocation)*
-**Research grounding:** optional — runs unrooted if no `Project:` is supplied.
 
 ---
 
