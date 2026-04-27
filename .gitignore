@@ -5,6 +5,8 @@ outputs/
 # In-progress round files — written during a run, one per round.
 # Force-add to share a specific round: `git add -f .working/<file>`.
 .working/
+!.working/sample
+
 
 # Editor / OS noise
 .DS_Store
