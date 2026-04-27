@@ -19,9 +19,9 @@ Teams: Team A, Team B
 Topic: <your topic in one sentence>
 ```
 
-Claude resolves teams against `teams/teams.yaml`, loads the personas, loads
-the scenario file, and produces the acknowledgment. Then you send the round
-prompts in order.
+That's it. Claude resolves teams, loads the personas, loads the scenario,
+acknowledges, and then runs all five rounds automatically. You read the full
+transcript when it's done.
 
 To **change the topic**, edit the `Topic:` line. To **change the teams**,
 edit the `Teams:` line (any alias works: `Team A`, `commercial_strategy`,
@@ -42,18 +42,16 @@ Claude Code has direct filesystem access; nothing to paste.
 1. Open Claude Code in this repo (`cd` into the worktree, run `claude`).
 2. Pick the model — default `claude-sonnet-4-6`, swap to `claude-opus-4-7` for
    stakeholder-grade runs.
-3. Send the invocation message above. Claude reads the files itself.
-4. Read the acknowledgment. Confirm the scenario, topic, teams, and voice
-   samples look right. If anything is wrong, fix it and re-invoke — don't
-   proceed with broken state.
-5. Send each round prompt in turn. The simplest way is to tell Claude:
-   > Run round 1 from `prompts/rounds/round1_opening.md`.
-
-   …and so on for rounds 2–5. Wait for `--- end of round N ---` between
-   rounds.
-6. Save the round 5 synthesis to `outputs/<YYYY-MM-DD>-<tag>-run.md`. Ask
-   Claude to write it for you.
-7. Score against `evaluation/rubric.md`.
+3. Send the invocation message above. Claude reads all files itself and runs
+   the full simulation — acknowledgment through round 5 synthesis — without
+   further input from you.
+4. Review the output. The acknowledgment block tells you the scenario, topic,
+   teams, and voice samples. If something looks wrong there, the rest of the
+   run reflects that error — re-invoke from a fresh chat rather than patching
+   mid-run.
+5. Each round is automatically saved to `.working/` as it completes — review
+   them there. Copy the round 5 file to `outputs/` to make it permanent.
+6. Score against `evaluation/rubric.md`.
 
 ## Path B — claude.ai with a Project
 
@@ -66,7 +64,10 @@ local repo.
    by path.
 3. Start a new chat in the Project.
 4. Pick the model.
-5. Send the invocation message. The flow from here is identical to Path A.
+5. Send the invocation message. Claude runs all five rounds automatically.
+   Note: `.working/` file writes only work in Path A (Claude Code). In a
+   Project chat, Claude can't write to your local filesystem — copy each
+   round's output manually from the chat window as needed.
 
 When you edit any file in the repo, re-sync the Project so the chat sees the
 new version.
@@ -94,9 +95,8 @@ the round prompts in order.
 
    <paste the contents of prompts/scenarios/cross_functional_workshop.md>
    ```
-4. **Round prompts** — paste each `prompts/rounds/roundN_*.md` in turn,
-   waiting for `--- end of round N ---` between them.
-5. Save and score the same way as Path A.
+4. All five rounds run automatically, with each round saved to `.working/`.
+   Score the same way as Path A.
 
 This path is the most paste-heavy but works anywhere Claude does. If you find
 yourself running it more than a couple of times, switch to Path A or B.
@@ -117,12 +117,29 @@ yourself running it more than a couple of times, switch to Path A or B.
 
 ## Saving and scoring
 
-- Save round 5's synthesis to `outputs/<YYYY-MM-DD>-<tag>-run.md`. The
-  `outputs/` dir is gitignored by default — `git add -f` if you want a
-  specific run committed.
-- Score the run against `evaluation/rubric.md`. Capture per-criterion
-  score + evidence inline at the bottom of the saved synthesis. Target:
-  **≥ 14 / 18**.
+During the run, Hermes writes each round's output to `.working/` as it
+completes:
+
+```
+.working/<YYYY-MM-DD>-<topic-slug>-round1.md
+.working/<YYYY-MM-DD>-<topic-slug>-round2.md
+...
+.working/<YYYY-MM-DD>-<topic-slug>-round5.md
+```
+
+These files are gitignored by default — they're your working scratchpad.
+Review any round before the run finishes (they're written incrementally),
+or use them to compare runs side-by-side after the fact.
+
+To promote the synthesis to a permanent record:
+```
+cp .working/<date>-<slug>-round5.md outputs/<date>-<tag>-run.md
+```
+
+Score the saved synthesis against `evaluation/rubric.md`. Capture per-criterion
+score + evidence inline at the bottom of the file. Target: **≥ 14 / 18**.
+
+To share or commit a specific round: `git add -f .working/<file>`.
 
 ---
 

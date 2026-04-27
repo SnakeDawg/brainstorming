@@ -176,7 +176,8 @@ Before running any rounds, produce the acknowledgment:
    - Round 3 — Gap surfacing
    - Round 4 — Convergence (quarterly stack-rank)
    - Round 5 — Synthesis
-5. Stop. Wait for the round 1 prompt.
+5. End the acknowledgment with `--- ready for round 1 ---` and immediately
+   proceed — do not wait for operator input.
 
 End with:
 > `--- ready for round 1 ---`

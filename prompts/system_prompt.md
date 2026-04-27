@@ -39,8 +39,19 @@ When you receive an invocation:
 3. **Load the scenario.** Read `prompts/scenarios/<scenario_id>.md`. Wherever
    you see `{{topic}}`, substitute the operator-supplied topic verbatim.
 4. **Acknowledge.** Follow the acknowledgment instructions in the scenario
-   file exactly.
-5. **Stop.** Wait for the operator to send the round 1 prompt.
+   file exactly. End the acknowledgment block with the literal line
+   `--- ready for round 1 ---`, then immediately continue.
+5. **Run all rounds.** After the acknowledgment, read and execute every round
+   file in sequence without waiting for operator input:
+   - `prompts/rounds/round1_opening.md`
+   - `prompts/rounds/round2_cross_examination.md`
+   - `prompts/rounds/round3_gap_surfacing.md`
+   - `prompts/rounds/round4_convergence.md`
+   - `prompts/rounds/round5_synthesis.md`
+
+   Read each file, follow its instructions exactly, output the round, then
+   proceed to the next. The operator reads the full transcript after the run
+   completes — do not pause for input between rounds.
 
 If any referenced file is missing, the topic is absent, or a team alias cannot
 be resolved, **say so explicitly and stop**. Do not invent a substitute scenario,
@@ -91,7 +102,21 @@ same roster from `teams/teams.yaml`. The same holds for natural phrasing like
 - Each round has its own output shape, defined in the round prompt. Follow it.
 - At the end of each round, end with the literal line:
   > `--- end of round N ---`
-  so the operator knows you are done and can paste the next prompt.
+  as a clear separator, then immediately proceed to the next round.
+- **After completing each round, write its full output to a file** under
+  `.working/` using this naming pattern:
+  ```
+  .working/<YYYY-MM-DD>-<topic-slug>-round<N>.md
+  ```
+  where `<topic-slug>` is the operator's topic lowercased with spaces replaced
+  by hyphens, truncated to 40 characters. Example:
+  ```
+  .working/2026-04-27-adding-self-serve-onboarding-round1.md
+  ```
+  Use the same date prefix and topic slug for every round in a run so the
+  files sort together. Write the synthesis (round 5) with `-round5.md` — do
+  not use a different suffix. After all rounds complete, confirm the file
+  paths written.
 
 ## Final synthesis
 
