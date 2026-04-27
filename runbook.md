@@ -134,71 +134,19 @@ prefix is captured at the start of each run.
 
 ---
 
-## Path A (recommended) — Claude Code in this repo
+## How to run — Claude Code
 
-Claude Code has direct filesystem access; nothing to paste.
+Claude Code has direct filesystem access, so nothing to paste beyond the
+invocation.
 
 1. Open Claude Code in this repo (`cd` into the worktree, run `claude`).
-2. Pick the model — default `claude-sonnet-4-6`, swap to `claude-opus-4-7` for
-   stakeholder-grade runs.
-3. Send the invocation message above. Claude reads all files itself and runs
-   the full simulation — acknowledgment through round 5 synthesis — without
-   further input from you.
-4. Review the output. The acknowledgment block tells you the scenario, topic,
-   teams, and voice samples. If something looks wrong there, the rest of the
-   run reflects that error — re-invoke from a fresh chat rather than patching
-   mid-run.
-5. Each round is automatically saved to `.working/` as it completes — review
-   them there. Copy the round 5 file to `outputs/` to make it permanent.
-6. Score against `evaluation/rubric.md`.
-
-## Path B — claude.ai with a Project
-
-Same one-line invocation, but the files live in a Claude Project instead of a
-local repo.
-
-1. Create a Project on claude.ai.
-2. Upload (or sync from GitHub) `prompts/`, `personas/`, and `teams/` into the
-   Project's knowledge base. The model in the Project can now reference them
-   by path.
-3. Start a new chat in the Project.
-4. Pick the model.
-5. Send the invocation message. Claude runs all five rounds automatically.
-   Note: `.working/` file writes only work in Path A (Claude Code). In a
-   Project chat, Claude can't write to your local filesystem — copy each
-   round's output manually from the chat window as needed.
-
-When you edit any file in the repo, re-sync the Project so the chat sees the
-new version.
-
-## Path C (fallback) — plain claude.ai chat, no file access
-
-Use this only if you can't use Path A or B. You'll paste the brief once, then
-the round prompts in order.
-
-1. Open a fresh chat. Pick the model.
-2. **First message** — paste these files in this order, with the line
-   `Below is your moderator brief, persona profiles, and team configuration.
-   Read them, then wait for the scenario invocation.` at the top:
-   - `prompts/system_prompt.md`
-   - all five `personas/*.md` files
-   - `teams/teams.yaml`
-3. **Second message** — the invocation:
-   ```
-   Scenario: cross_functional_workshop
-   Teams: Team A, Team B
-   Topic: <your topic>
-
-   Use the contents of prompts/scenarios/cross_functional_workshop.md as the
-   scenario kickoff:
-
-   <paste the contents of prompts/scenarios/cross_functional_workshop.md>
-   ```
-4. All five rounds run automatically, with each round saved to `.working/`.
-   Score the same way as Path A.
-
-This path is the most paste-heavy but works anywhere Claude does. If you find
-yourself running it more than a couple of times, switch to Path A or B.
+2. Pick the model (see **Model selection** below).
+3. Send the invocation. Claude reads all files itself and runs the full
+   simulation — acknowledgment through round 5 synthesis — without further
+   input from you.
+4. Each round is saved to `.working/` as it completes. Copy the round 5
+   file to `outputs/` when you want to keep the run permanently.
+5. Score against `evaluation/rubric.md`.
 
 ---
 
@@ -226,9 +174,9 @@ completes:
 .working/<YYYY-MM-DD>-<HHMM>-<topic-slug>-round5.md
 ```
 
-These files are gitignored by default — they're your working scratchpad.
-Review any round before the run finishes (they're written incrementally),
-or use them to compare runs side-by-side after the fact.
+These files are gitignored by default — your working scratchpad. Review
+any round while the run is still going (they're written incrementally),
+or compare two runs side-by-side after the fact.
 
 To promote the synthesis to a permanent record:
 ```
