@@ -19,9 +19,10 @@ Teams: Team A, Team B
 Topic: <your topic in one sentence>
 ```
 
-That's it. Claude resolves teams, loads the personas, loads the scenario,
-acknowledges, and runs all five rounds automatically. You read the full
-transcript when it's done.
+That's it. `Team A, Team B` is all five personas: Sales, PDM, and Marketing
+on Team A; Support and Services on Team B. Claude resolves the rosters,
+loads each persona file, loads the scenario, acknowledges, and runs all
+five rounds automatically. You read the full transcript when it's done.
 
 **To join as a participant**, add a `Human:` line:
 

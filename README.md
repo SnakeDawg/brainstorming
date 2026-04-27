@@ -40,7 +40,7 @@ repeatable simulation.
 
 ## Quick start
 
-The operator's job is one message:
+Run this in Claude Code from the repo root:
 
 ```
 Read prompts/system_prompt.md and follow it.
@@ -50,20 +50,21 @@ Teams: Team A, Team B
 Topic: <your topic in one sentence>
 ```
 
-Send to Claude in an environment that can read these files (Claude Code in
-this repo, or a claude.ai Project with the files synced). Claude resolves
-the teams, loads the personas, runs the kickoff acknowledgment, and waits
-for round prompts.
+`Team A, Team B` is all five personas — Sales, PDM, and Marketing on Team A;
+Support and Services on Team B. Claude resolves the rosters, loads each
+persona file, runs the acknowledgment, then executes all five rounds
+automatically. One message in; full transcript + `.working/` files out.
+
+To **join as a participant**, add `Human: <your name and role> — <your angle>`
+and Hermes pauses for your input at each round.
 
 To **change topic**, edit the `Topic:` line. To **change teams**, edit
 the `Teams:` line — any alias works (`Team A`, `commercial_strategy`, or
 `Commercial Strategy Team`). To **change scenario**, edit the `Scenario:`
 line and add a new file under `prompts/scenarios/`.
 
-For the full procedure (including a no-file-access fallback and an
-optional project-integration hook), see [`runbook.md`](./runbook.md).
-Score with [`evaluation/rubric.md`](./evaluation/rubric.md); target
-≥14/18 on a baseline run.
+See [`runbook.md`](./runbook.md) for the full procedure and a worked example.
+Score with [`evaluation/rubric.md`](./evaluation/rubric.md); target ≥14/18.
 
 ## Default model
 
@@ -72,6 +73,7 @@ dialogue on stakeholder runs. See `runbook.md` for details.
 
 ## Outputs
 
-Saved synthesis artifacts go in `outputs/<YYYY-MM-DD>-<tag>-run.md`. The
-`outputs/` directory is git-ignored by default — keep it that way unless you
-want to publish a specific run.
+Each round is written to `.working/<YYYY-MM-DD>-<HHMM>-<slug>-roundN.md`
+during the run (gitignored). To keep a run permanently, copy the round 5
+synthesis to `outputs/<date>-<tag>-run.md` (also gitignored; force-add to
+commit).
