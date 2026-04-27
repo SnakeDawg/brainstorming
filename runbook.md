@@ -35,6 +35,105 @@ doesn't exist.
 
 ---
 
+## Worked example — start to finish
+
+A complete run, no abstractions. The operator wants to know what should be
+in the top 5 requirements for a self-serve onboarding feature.
+
+### 1. Invocation
+
+In Claude Code (run `claude` from the repo root), the operator sends:
+
+```
+Read prompts/system_prompt.md and follow it.
+
+Scenario: cross_functional_workshop
+Teams: Team A, Team B
+Topic: adding self-serve onboarding for new customers
+```
+
+### 2. What Hermes does — without further input
+
+Hermes reads `prompts/system_prompt.md`, then:
+
+1. Reads `teams/teams.yaml` and resolves `Team A` → `commercial_strategy`
+   (Sales, PDM, Marketing) and `Team B` → `customer_reality` (Support,
+   Services).
+2. Reads each persona file: `personas/sales.md`, `personas/pdm.md`, etc.
+3. Reads `prompts/scenarios/cross_functional_workshop.md` and substitutes
+   `{{topic}}` with `adding self-serve onboarding for new customers`.
+4. Outputs the acknowledgment block — scenario name, topic, the full
+   roster, a one-line in-character voice sample for each persona, and
+   the round preview. Ends with `--- ready for round 1 ---`.
+5. Immediately reads `prompts/rounds/round1_opening.md` and runs round 1.
+   Each persona names their top 3 requirements with rationale and one
+   missing input. Closes with `--- end of round 1 ---`.
+6. Writes the round 1 output to
+   `.working/2026-04-27-1430-adding-self-serve-onboarding-for-new-c-round1.md`.
+7. Repeats for rounds 2 → 5. Each round is written to a sibling file with
+   the same date/time/slug prefix.
+8. After round 5, confirms the five file paths it wrote.
+
+The operator does nothing during steps 2–8. Total: one message in, one
+long transcript + five files out.
+
+### 3. What appears on disk
+
+```
+.working/
+├── 2026-04-27-1430-adding-self-serve-onboarding-for-new-c-round1.md
+├── 2026-04-27-1430-adding-self-serve-onboarding-for-new-c-round2.md
+├── 2026-04-27-1430-adding-self-serve-onboarding-for-new-c-round3.md
+├── 2026-04-27-1430-adding-self-serve-onboarding-for-new-c-round4.md
+└── 2026-04-27-1430-adding-self-serve-onboarding-for-new-c-round5.md
+```
+
+`round5.md` is the structured synthesis — the artifact that gets handed to
+leadership. Rounds 1–4 are the supporting transcript so you can audit how
+the synthesis was reached (what got conceded, who pushed back on what).
+
+### 4. Promote the synthesis
+
+If this run is worth keeping, copy round 5 into `outputs/` and tag it:
+
+```
+cp .working/2026-04-27-1430-adding-self-serve-onboarding-for-new-c-round5.md \
+   outputs/2026-04-27-self-serve-onboarding.md
+```
+
+`outputs/` is gitignored too. To commit a specific run for the team:
+
+```
+git add -f outputs/2026-04-27-self-serve-onboarding.md
+git commit -m "Hermes run: self-serve onboarding requirements"
+```
+
+### 5. Score it
+
+Open `evaluation/rubric.md`, walk the 9 criteria against the synthesis +
+the round 1–4 transcripts, and append the per-criterion score with evidence
+to the bottom of the saved synthesis file. Target: **≥ 14 / 18**. Below
+that, the run isn't trustworthy as a stakeholder artifact — sharpen
+personas or the scenario file and re-run from a fresh chat.
+
+### 6. Re-run with a different topic
+
+Same message, just edit the `Topic:` line:
+
+```
+Read prompts/system_prompt.md and follow it.
+
+Scenario: cross_functional_workshop
+Teams: Team A, Team B
+Topic: replacing the legacy on-prem deployment path with managed SaaS
+```
+
+Each run gets its own `.working/<date>-<HHMM>-<slug>-roundN.md` set —
+runs of the same topic on the same day don't collide because the HHMM
+prefix is captured at the start of each run.
+
+---
+
 ## Path A (recommended) — Claude Code in this repo
 
 Claude Code has direct filesystem access; nothing to paste.
