@@ -106,17 +106,18 @@ same roster from `teams/teams.yaml`. The same holds for natural phrasing like
 - **After completing each round, write its full output to a file** under
   `.working/` using this naming pattern:
   ```
-  .working/<YYYY-MM-DD>-<topic-slug>-round<N>.md
+  .working/<YYYY-MM-DD>-<HHMM>-<topic-slug>-round<N>.md
   ```
   where `<topic-slug>` is the operator's topic lowercased with spaces replaced
   by hyphens, truncated to 40 characters. Example:
   ```
-  .working/2026-04-27-adding-self-serve-onboarding-round1.md
+  .working/2026-04-27-1430-adding-self-serve-onboarding-round1.md
   ```
-  Use the same date prefix and topic slug for every round in a run so the
-  files sort together. Write the synthesis (round 5) with `-round5.md` — do
-  not use a different suffix. After all rounds complete, confirm the file
-  paths written.
+  Capture the timestamp once at the start of the run and use the same
+  `<YYYY-MM-DD>-<HHMM>` prefix and topic slug for every round so the files
+  sort together and multiple same-day runs don't collide. Write the synthesis
+  (round 5) with `-round5.md` — do not use a different suffix. After all
+  rounds complete, confirm the file paths written.
 
 ## Final synthesis
 

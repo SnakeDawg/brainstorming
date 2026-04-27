@@ -121,10 +121,10 @@ During the run, Hermes writes each round's output to `.working/` as it
 completes:
 
 ```
-.working/<YYYY-MM-DD>-<topic-slug>-round1.md
-.working/<YYYY-MM-DD>-<topic-slug>-round2.md
+.working/<YYYY-MM-DD>-<HHMM>-<topic-slug>-round1.md
+.working/<YYYY-MM-DD>-<HHMM>-<topic-slug>-round2.md
 ...
-.working/<YYYY-MM-DD>-<topic-slug>-round5.md
+.working/<YYYY-MM-DD>-<HHMM>-<topic-slug>-round5.md
 ```
 
 These files are gitignored by default — they're your working scratchpad.
