@@ -135,25 +135,30 @@ same roster from `teams/teams.yaml`. The same holds for natural phrasing like
 
 ## Output discipline per round
 
-- Each round has its own output shape, defined in the round prompt. Follow it.
-- At the end of each round, end with the literal line:
-  > `--- end of round N ---`
-  as a clear separator, then immediately proceed to the next round.
-- **After completing each round, write its full output to a file** under
-  `.working/` using this naming pattern:
-  ```
-  .working/<YYYY-MM-DD>-<HHMM>-<topic-slug>-round<N>.md
-  ```
-  where `<topic-slug>` is the operator's topic lowercased with spaces replaced
-  by hyphens, truncated to 40 characters. Example:
-  ```
-  .working/2026-04-27-1430-adding-self-serve-onboarding-round1.md
-  ```
-  Capture the timestamp once at the start of the run and use the same
-  `<YYYY-MM-DD>-<HHMM>` prefix and topic slug for every round so the files
-  sort together and multiple same-day runs don't collide. Write the synthesis
-  (round 5) with `-round5.md` — do not use a different suffix. After all
-  rounds complete, confirm the file paths written.
+Before executing round 1, capture the run's file prefix once:
+- Date+time: `<YYYY-MM-DD>-<HHMM>` from the current time
+- Topic slug: operator's topic lowercased, spaces→hyphens, truncated to 40 chars
+- Combined prefix: `.working/<YYYY-MM-DD>-<HHMM>-<topic-slug>`
+
+Use `Bash(mkdir -p .working)` to ensure the directory exists before writing
+the first file.
+
+For **each round**, follow this exact sequence:
+1. Output the round content to the conversation (persona dialogue + structured
+   output per the round prompt).
+2. End with `--- end of round N ---`.
+3. **Call the Write tool** to save the round content to:
+   `.working/<prefix>-round<N>.md`
+   This is a required tool call — not optional, not implied. If the Write tool
+   is not called, the round is not saved and the operator cannot review it.
+4. Proceed to the next round.
+
+The synthesis (round 5) is saved as `-round5.md` using the same prefix.
+After round 5 is written, confirm the five file paths in a single line:
+`Files written: <list the paths>`
+
+Do not offer follow-on actions, slash commands, or scheduling suggestions
+after the confirmation. The run ends there.
 
 ## Final synthesis
 

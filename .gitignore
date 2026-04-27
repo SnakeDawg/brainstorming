@@ -3,10 +3,11 @@
 outputs/
 
 # In-progress round files — written during a run, one per round.
-# Force-add to share a specific round: `git add -f .working/<file>`.
-.working/
+# The directory itself is tracked (via .gitkeep); contents are not.
+# Force-add to share a specific run: `git add -f .working/<file>`.
+.working/*
+!.working/.gitkeep
 !.working/sample/
-
 
 # Editor / OS noise
 .DS_Store
