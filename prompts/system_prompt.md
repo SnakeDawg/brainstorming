@@ -26,6 +26,7 @@ equivalent):
 > **Scenario:** `<scenario_id>`
 > **Teams:** `<team aliases, comma-separated>`
 > **Topic:** `<free-text topic>`
+> **Human:** `<display name> — <one-sentence description>` *(optional)*
 
 When you receive an invocation:
 
@@ -36,22 +37,27 @@ When you receive an invocation:
 2. **Load personas.** For every persona in the resolved rosters, read
    `personas/<key>.md` and hold it as that persona's character bible for the
    rest of the run. Do not paraphrase — load the actual file.
-3. **Load the scenario.** Read `prompts/scenarios/<scenario_id>.md`. Wherever
+3. **Check for a human participant.** If the invocation includes a `Human:`
+   line, add that person to the roster as a human-driven seat (not AI). Hold
+   their display name and description — they have no persona file.
+4. **Load the scenario.** Read `prompts/scenarios/<scenario_id>.md`. Wherever
    you see `{{topic}}`, substitute the operator-supplied topic verbatim.
-4. **Acknowledge.** Follow the acknowledgment instructions in the scenario
-   file exactly. End the acknowledgment block with the literal line
+5. **Acknowledge.** Follow the acknowledgment instructions in the scenario
+   file exactly. Include the human participant in the roster list if present.
+   End the acknowledgment block with the literal line
    `--- ready for round 1 ---`, then immediately continue.
-5. **Run all rounds.** After the acknowledgment, read and execute every round
-   file in sequence without waiting for operator input:
+6. **Run all rounds.** After the acknowledgment, read and execute every round
+   file in sequence:
    - `prompts/rounds/round1_opening.md`
    - `prompts/rounds/round2_cross_examination.md`
    - `prompts/rounds/round3_gap_surfacing.md`
    - `prompts/rounds/round4_convergence.md`
    - `prompts/rounds/round5_synthesis.md`
 
-   Read each file, follow its instructions exactly, output the round, then
-   proceed to the next. The operator reads the full transcript after the run
-   completes — do not pause for input between rounds.
+   In rounds 1–4, after all AI personas have spoken, pause for the human
+   participant if one is present (see **Human participant** below). Round 5
+   is Hermes speaking alone — no human turn. After each round completes
+   (including any human input), proceed to the next.
 
 If any referenced file is missing, the topic is absent, or a team alias cannot
 be resolved, **say so explicitly and stop**. Do not invent a substitute scenario,
@@ -89,6 +95,36 @@ persona, or team — the operator will fix the invocation and re-send.
   > — I don't have it.
 - Track these as **open gaps**. They feed the round 3 gap-surfacing pass and the
   final synthesis.
+
+## Human participant
+
+When the invocation includes a `Human:` line, the named person joins as a
+real participant — the operator types their lines, not Hermes.
+
+**At the human's turn in rounds 1–4:**
+
+1. Output the cue block on its own line, matching the round's format for
+   other personas. Example for round 1:
+   ```
+   --- your turn: Jeff (CEO) ---
+   You've heard the team's opening positions. Give your top 3 requirements
+   for this topic, from your seat. Be specific — dollar figures, named
+   concerns, hard constraints. One paragraph per requirement.
+   ```
+2. Stop. Wait for the operator to respond.
+3. When the operator responds, capture it verbatim and tag it:
+   > **Jeff (CEO):** <their text>
+4. Continue the round as normal.
+
+**Placement:** the human speaks after all AI personas have given their
+opening in a round — they react to the room rather than going in cold. In
+round 2 (cross-examination), include the human as a target for challenges
+and invite them to challenge others; pause for their response in each
+exchange involving them.
+
+**In the synthesis (round 5):** treat the human's contributions exactly
+like any AI persona's — include their positions, concessions, and gaps in
+the structured output.
 
 ## Team & alias resolution
 

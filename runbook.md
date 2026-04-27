@@ -20,14 +20,23 @@ Topic: <your topic in one sentence>
 ```
 
 That's it. Claude resolves teams, loads the personas, loads the scenario,
-acknowledges, and then runs all five rounds automatically. You read the full
+acknowledges, and runs all five rounds automatically. You read the full
 transcript when it's done.
 
-To **change the topic**, edit the `Topic:` line. To **change the teams**,
-edit the `Teams:` line (any alias works: `Team A`, `commercial_strategy`,
-or `Commercial Strategy Team`). To **change the scenario**, edit the
-`Scenario:` line and add a new file under `prompts/scenarios/` if it
-doesn't exist.
+**To join as a participant**, add a `Human:` line:
+
+```
+Read prompts/system_prompt.md and follow it.
+
+Scenario: cross_functional_workshop
+Teams: Team A, Team B
+Topic: <your topic in one sentence>
+Human: <your name and role> — <one sentence on your perspective>
+```
+
+Hermes pauses at your turn in each round (1–4), prompts you for your
+input, incorporates your response, and continues. Round 5 (synthesis) runs
+without a human turn.
 
 > **Optional:** an extra `Project: <path>` line wires Hermes to an external
 > research project so personas argue from cited evidence. Off by default;
@@ -131,6 +140,32 @@ Topic: replacing the legacy on-prem deployment path with managed SaaS
 Each run gets its own `.working/<date>-<HHMM>-<slug>-roundN.md` set —
 runs of the same topic on the same day don't collide because the HHMM
 prefix is captured at the start of each run.
+
+### 7. Variant — join as a participant
+
+Add a `Human:` line and Hermes pauses at your turn in each of rounds 1–4:
+
+```
+Read prompts/system_prompt.md and follow it.
+
+Scenario: cross_functional_workshop
+Teams: Team A, Team B
+Topic: adding self-serve onboarding for new customers
+Human: Jeff (CEO) — focused on revenue impact and enterprise readiness
+```
+
+After the five AI personas give their opening in round 1, Hermes outputs:
+
+```
+--- your turn: Jeff (CEO) ---
+You've heard the team's opening positions. Give your top 3 requirements
+for this topic, from your seat. Be specific — dollar figures, named
+concerns, hard constraints. One paragraph per requirement.
+```
+
+You type your response. Hermes tags it as `**Jeff (CEO):**`, carries it
+into the rest of the discussion, and includes your positions in the round 5
+synthesis alongside the AI personas. Same `.working/` files, same scoring.
 
 ---
 
