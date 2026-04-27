@@ -3,9 +3,7 @@
   "permissions": {
     "allow": [
       "Write(.working/**)",
-      "Write(outputs/**)",
-      "Bash(mkdir -p .working*)",
-      "Bash(mkdir -p outputs*)"
+      "Write(outputs/**)"
     ]
   }
 }

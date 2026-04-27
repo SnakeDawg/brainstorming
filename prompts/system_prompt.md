@@ -149,8 +149,8 @@ Before executing round 1, capture the run's file prefix once:
 - Topic slug: operator's topic lowercased, spaces→hyphens, truncated to 40 chars
 - Combined prefix: `.working/<YYYY-MM-DD>-<HHMM>-<topic-slug>`
 
-Use `Bash(mkdir -p .working)` to ensure the directory exists before writing
-the first file.
+The `.working/` directory is guaranteed to exist (committed to the repo via
+`.gitkeep`) — do not run mkdir.
 
 For **each round**, follow this exact sequence:
 1. Output the round content to the conversation (persona dialogue + structured
