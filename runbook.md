@@ -96,31 +96,50 @@ long transcript + five files out.
 leadership. Rounds 1–4 are the supporting transcript so you can audit how
 the synthesis was reached (what got conceded, who pushed back on what).
 
-### 4. Promote the synthesis
+### 4. Generate the HTML report
 
-If this run is worth keeping, copy round 5 into `outputs/` and tag it:
+After the run completes, generate a polished single-file HTML report:
+
+```
+/hermes-report
+```
+
+No argument needed — it finds the most recent run in `.working/` automatically.
+To target a specific run, pass the prefix:
+
+```
+/hermes-report 2026-04-27-1430-adding-self-serve-onboarding-for-new-c
+```
+
+The report is written to `outputs/<prefix>-report.html`. Open it in any browser.
+The `.working/` markdown files are the lineage record — the HTML is the
+shareable artifact.
+
+### 5. Promote the synthesis (optional)
+
+If you also want to keep the raw markdown synthesis:
 
 ```
 cp .working/2026-04-27-1430-adding-self-serve-onboarding-for-new-c-round5.md \
    outputs/2026-04-27-self-serve-onboarding.md
 ```
 
-`outputs/` is gitignored too. To commit a specific run for the team:
+`outputs/` is gitignored. To commit artifacts for the team:
 
 ```
-git add -f outputs/2026-04-27-self-serve-onboarding.md
+git add -f outputs/2026-04-27-self-serve-onboarding-report.html
 git commit -m "Hermes run: self-serve onboarding requirements"
 ```
 
-### 5. Score it
+### 6. Score it
 
-Open `evaluation/rubric.md`, walk the 9 criteria against the synthesis +
-the round 1–4 transcripts, and append the per-criterion score with evidence
-to the bottom of the saved synthesis file. Target: **≥ 14 / 18**. Below
-that, the run isn't trustworthy as a stakeholder artifact — sharpen
-personas or the scenario file and re-run from a fresh chat.
+Hermes appends the score sheet automatically to the round 5 file and prints
+a Strong/Partial/Weak summary in the conversation. Target: **≥ 14 / 18** on
+a single run (C8/C9 require a second run to score). Below 14, the run isn't
+trustworthy as a stakeholder artifact — sharpen personas or the scenario
+file and re-run from a fresh chat.
 
-### 6. Re-run with a different topic
+### 7. Re-run with a different topic
 
 Same message, just edit the `Topic:` line:
 
@@ -134,7 +153,7 @@ Each run gets its own `.working/<date>-<HHMM>-<slug>-roundN.md` set —
 runs of the same topic on the same day don't collide because the HHMM
 prefix is captured at the start of each run.
 
-### 7. Variant — join as a participant
+### 8. Variant — join as a participant
 
 Add a `Human:` line and Hermes pauses at your turn in each of rounds 1–4:
 

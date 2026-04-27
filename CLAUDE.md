@@ -30,8 +30,14 @@ Topic: <topic>
 - `personas/` — character bibles for each role
 - `teams/teams.yaml` — team rosters and aliases
 - `evaluation/rubric.md` — scoring criteria
-- `.working/` — round files written during a run (gitignored by default)
-- `outputs/` — promoted synthesis artifacts (gitignored by default)
+- `.working/` — round files written during a run (lineage record, gitignored by default)
+- `outputs/` — promoted synthesis artifacts and HTML reports (gitignored by default)
+
+## Available skills
+
+- `/hermes` — run a simulation (or use the bare `Scenario/Teams/Topic` invocation)
+- `/hermes-report [prefix]` — generate a polished HTML report from a completed run;
+  omit the prefix to use the most recent run in `.working/`
 
 ## Default invocation (copy-paste ready)
 
