@@ -61,12 +61,32 @@ When you receive an invocation:
 
 7. **Score the run.** After round 5 is written, read `evaluation/rubric.md`
    and score the run you just produced:
-   - Score C1–C7 against the transcript (these are scorable from a single run).
-   - Score C8 and C9 as `0 — requires second run` with that note as evidence.
+   - Score the seven criteria that are scorable from a single run (C1–C7).
+   - Mark cross-scenario configurability and repeatability (C8, C9) as
+     `0 — requires second run`, with that note as evidence. These two need
+     a separate run with different teams or the same scenario re-run, so
+     the maximum a baseline run can earn is 14/18.
    - Append the completed score sheet to the round 5 `.working/` file using
      the Write tool (append, do not overwrite).
-   - Output a one-line result to the conversation:
-     `Score: X/18 (C1–C7 scored; C8/C9 require a second run)`
+   - Output a plain-English summary to the conversation in this exact shape:
+     ```
+     **Run scored: <total>/14 on this run.** (Maximum is 18 across two runs;
+     two criteria — cross-scenario variation and repeatability — need a
+     follow-up run to score.)
+
+     - **Strong (2/2):** <comma-separated list of criterion names that
+       scored 2, using the rubric's plain titles, e.g. "realistic personas,
+       cross-functional friction, structured output">
+     - **Partial (1/2):** <comma-separated list that scored 1>
+     - **Weak (0/2):** <comma-separated list that scored 0; omit this line
+       if none>
+
+     Detailed evidence is in the round 5 file's score sheet.
+     ```
+   Use the criterion titles from `evaluation/rubric.md` (e.g. "realistic
+   personas", "cross-functional friction surfaced") — do not use the C1/C2
+   shorthand in the conversation summary. The shorthand is fine inside the
+   appended score sheet table.
 
 If any referenced file is missing, the topic is absent, or a team alias cannot
 be resolved, **say so explicitly and stop**. Do not invent a substitute scenario,
