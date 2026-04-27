@@ -43,8 +43,6 @@ repeatable simulation.
 Run this in Claude Code from the repo root:
 
 ```
-Read prompts/system_prompt.md and follow it.
-
 Scenario: cross_functional_workshop
 Teams: Team A, Team B
 Topic: <your topic in one sentence>

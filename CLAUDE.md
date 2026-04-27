@@ -4,21 +4,23 @@ This repository runs **Hermes** — a controlled cross-functional team simulatio
 It is not a general brainstorming tool and does not use brainstorming skills or
 slash commands. Do not route invocations to any skill or built-in behavior.
 
+## Automatic startup
+
+At the start of every session in this repo, read `prompts/system_prompt.md`
+and hold it as your operating instructions. Do not summarize it, do not
+suggest alternatives, do not trigger any skill.
+
 ## How to invoke Hermes
 
-When the user sends a message in this shape, it is a Hermes invocation:
+When the user sends a message containing `Scenario:`, `Teams:`, and `Topic:`
+lines, it is a Hermes invocation. Execute it immediately per the instructions
+already loaded from `prompts/system_prompt.md`.
 
 ```
-Read prompts/system_prompt.md and follow it.
-
 Scenario: <scenario_id>
 Teams: <team aliases>
 Topic: <topic>
 ```
-
-**Respond by reading `prompts/system_prompt.md` and following it exactly.**
-Do not summarize it, do not suggest alternatives, do not trigger any skill.
-The system prompt is the complete instruction set.
 
 ## What this repo contains
 
@@ -34,8 +36,6 @@ The system prompt is the complete instruction set.
 ## Default invocation (copy-paste ready)
 
 ```
-Read prompts/system_prompt.md and follow it.
-
 Scenario: cross_functional_workshop
 Teams: Team A, Team B
 Topic: <your topic in one sentence>

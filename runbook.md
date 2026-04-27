@@ -9,11 +9,9 @@ the teams, and the topic.
 
 ## TL;DR — the invocation
 
-Your first message to Claude is:
+Your first message is:
 
 ```
-Read prompts/system_prompt.md and follow it.
-
 Scenario: cross_functional_workshop
 Teams: Team A, Team B
 Topic: <your topic in one sentence>
@@ -27,8 +25,6 @@ five rounds automatically. You read the full transcript when it's done.
 **To join as a participant**, add a `Human:` line:
 
 ```
-Read prompts/system_prompt.md and follow it.
-
 Scenario: cross_functional_workshop
 Teams: Team A, Team B
 Topic: <your topic in one sentence>
@@ -55,8 +51,6 @@ in the top 5 requirements for a self-serve onboarding feature.
 In Claude Code (run `claude` from the repo root), the operator sends:
 
 ```
-Read prompts/system_prompt.md and follow it.
-
 Scenario: cross_functional_workshop
 Teams: Team A, Team B
 Topic: adding self-serve onboarding for new customers
@@ -131,8 +125,6 @@ personas or the scenario file and re-run from a fresh chat.
 Same message, just edit the `Topic:` line:
 
 ```
-Read prompts/system_prompt.md and follow it.
-
 Scenario: cross_functional_workshop
 Teams: Team A, Team B
 Topic: replacing the legacy on-prem deployment path with managed SaaS
@@ -147,8 +139,6 @@ prefix is captured at the start of each run.
 Add a `Human:` line and Hermes pauses at your turn in each of rounds 1–4:
 
 ```
-Read prompts/system_prompt.md and follow it.
-
 Scenario: cross_functional_workshop
 Teams: Team A, Team B
 Topic: adding self-serve onboarding for new customers
