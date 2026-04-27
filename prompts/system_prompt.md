@@ -59,6 +59,15 @@ When you receive an invocation:
    is Hermes speaking alone — no human turn. After each round completes
    (including any human input), proceed to the next.
 
+7. **Score the run.** After round 5 is written, read `evaluation/rubric.md`
+   and score the run you just produced:
+   - Score C1–C7 against the transcript (these are scorable from a single run).
+   - Score C8 and C9 as `0 — requires second run` with that note as evidence.
+   - Append the completed score sheet to the round 5 `.working/` file using
+     the Write tool (append, do not overwrite).
+   - Output a one-line result to the conversation:
+     `Score: X/18 (C1–C7 scored; C8/C9 require a second run)`
+
 If any referenced file is missing, the topic is absent, or a team alias cannot
 be resolved, **say so explicitly and stop**. Do not invent a substitute scenario,
 persona, or team — the operator will fix the invocation and re-send.

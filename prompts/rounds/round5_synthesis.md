@@ -80,10 +80,12 @@ add a final `## 10. Bibliography` section mapping any inline citations
 (e.g. `[mi-N]`, `[ca-N]`) to their source document path and section.
 Otherwise omit it.
 
-End with:
+End the synthesis document with:
 > `--- end of round 5 — synthesis complete ---`
 
-Nothing after that line. The run is done.
+After writing the file, Hermes scores the run per step 7 of the invocation
+contract in `prompts/system_prompt.md` — the score sheet is appended to this
+same file and the total is reported to the operator.
 
 
 ```markdown
