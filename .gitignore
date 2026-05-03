@@ -41,3 +41,14 @@ tmpclaude-*
 
 # Local config
 *.local
+
+# Hermes Agent live run output (keep the dir, not the contents)
+runs/*
+!runs/.gitkeep
+!runs/sample/
+
+# Hermes Agent local install state
+hermes-agent/.venv/
+hermes-agent/hermes_state.db
+hermes-agent/hermes_state.db-*
+hermes-agent/.hermes/
