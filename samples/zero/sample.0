@@ -1,0 +1,36 @@
+// sample.0 — a small tour of Zero (Vercel Labs' agent-first systems language)
+//
+// Demonstrates: plain functions, generics, immutable + mutable bindings,
+// explicit error effects (`raises` / `raise` / `check`), and the explicit
+// `World` capability for stdout. Run with:  zero run samples/zero/sample.0
+
+fun answer() -> i32 {
+    return 40 + 2
+}
+
+// Generic, total (non-raising) function.
+fun identity<T>(value: T) -> T {
+    return value
+}
+
+// Fallible function: it declares the error it can `raise`, and callers must
+// `check` it so the effect is explicit rather than hidden.
+fun validate(value: i32) -> i32 raises { InvalidInput } {
+    if value == 42 {
+        return value
+    }
+    raise InvalidInput
+}
+
+pub fun main(world: World) -> Void raises {
+    let computed = answer()
+    let mut status = identity<i32>(computed)
+
+    status = validate(status)
+
+    if status == 42 {
+        check world.out.write("zero: math works\n")
+    } else {
+        check world.out.write("zero: math broke\n")
+    }
+}
