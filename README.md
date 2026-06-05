@@ -18,6 +18,9 @@ flowchart TD
         SUM["agents/summarizer\nAGENT.md"]
         SUM --> SUMS["  skills/format-summary\n  SKILL.md"]
         SUM --> SUMR["  rubric.md"]
+        YT["agents/youtube-summarizer\nAGENT.md"]
+        YT --> YTS["  skills/fetch-transcript\n  summarize-video\n  visualize-topics"]
+        YT --> YTR["  rubric.md"]
     end
 
     subgraph Improver["agents/improver (meta-agent)"]
@@ -44,11 +47,13 @@ flowchart TD
 
     G -->|improvement_agent| I
     SUM -->|improvement_agent| I
+    YT -->|improvement_agent| I
     I -->|reads| GT & GR
     I -->|uses| SH1 & SH2
     SC -->|references| SH2
     G -->|uses| SH1
     SUM -->|uses| SH1
+    YT -->|uses| SH1
     I -->|writes| MEM & IDX & HIST
 ```
 

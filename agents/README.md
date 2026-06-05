@@ -27,6 +27,7 @@ agents/
 |---|---|---|
 | [`greeter`](./greeter/AGENT.md) | Minimal hello-world agent | [`format-greeting`](./greeter/skills/format-greeting/SKILL.md) |
 | [`summarizer`](./summarizer/AGENT.md) | Bullet-point summarizer with shared-skill reuse | [`format-summary`](./summarizer/skills/format-summary/SKILL.md) |
+| [`youtube-summarizer`](./youtube-summarizer/AGENT.md) | Turn a YouTube URL (incl. Shorts) into a Markdown brief + Mermaid topic map, from the transcript | [`fetch-transcript`](./youtube-summarizer/skills/fetch-transcript/SKILL.md), [`summarize-video`](./youtube-summarizer/skills/summarize-video/SKILL.md), [`visualize-topics`](./youtube-summarizer/skills/visualize-topics/SKILL.md) |
 | [`improver`](./improver/AGENT.md) | Meta-agent that runs a measurable self-improvement loop against any target | `bootstrap`, `propose`, `run`, `score`, `reflect`, `report` |
 
 ## `AGENT.md` frontmatter schema
