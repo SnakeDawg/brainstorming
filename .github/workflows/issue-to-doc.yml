@@ -1,0 +1,44 @@
+# When an issue created from one of the kb issue forms is closed, write its
+# contents into the knowledge base (kb/) and commit the result to main.
+# This is the "fill in a form, change states, documentation updates itself"
+# part of the POC. Requires GitHub Actions; without Actions the same filing
+# is done by hand using the templates in each kb/ section.
+name: Issue to doc
+
+on:
+  issues:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  file-into-kb:
+    if: contains(github.event.issue.labels.*.name, 'kb')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write issue into the knowledge base
+        # Issue title/body are passed via env (not interpolated into the
+        # script) so user-written text can't inject shell commands.
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_USER: ${{ github.event.issue.user.login }}
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
+        run: python3 .github/scripts/issue_to_doc.py
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add kb
+          if git diff --cached --quiet; then
+            echo "nothing to commit"
+          else
+            git commit -m "kb: file closed issue #${{ github.event.issue.number }} into the knowledge base"
+            git push
+          fi

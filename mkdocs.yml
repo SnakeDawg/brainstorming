@@ -1,0 +1,26 @@
+# Turns the kb/ folder into a navigable website ("the app with UI").
+# Local preview: pip install mkdocs-material && mkdocs serve
+# Published to GitHub Pages by .github/workflows/docs-site.yml.
+site_name: Team Knowledge Base
+site_description: Strategy, roadmaps, research, analysis, and decisions — all markdown, all in GitHub.
+repo_url: https://github.com/SnakeDawg/brainstorming
+edit_uri: edit/main/kb/
+
+docs_dir: kb
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - content.action.edit
+
+plugins:
+  - search
+
+# No explicit `nav:` — the sidebar is generated from the folder structure, so
+# docs added later (including by the issue-to-doc automation) appear
+# automatically without editing this file.
+exclude_docs: |
+  _template.md

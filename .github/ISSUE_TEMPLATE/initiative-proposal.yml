@@ -1,0 +1,56 @@
+name: Initiative proposal
+description: Propose a strategic initiative. Accepted proposals are filed into kb/strategy/ automatically when this issue is closed.
+title: "[Initiative] "
+labels: ["kb", "initiative", "status:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Fill this in to propose a strategic initiative. When the issue is
+        closed, the answers are written into `kb/strategy/` automatically.
+        Conventions: see `kb/conventions.md`.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What problem or opportunity is this initiative about? Link any analysis or research that supports it.
+      placeholder: Mobile users abandon the payment step at 3x the desktop rate (see kb/analysis/checkout-funnel-dropoff.md)...
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Target outcome and metric
+      description: What changes if this succeeds, and how will we measure it?
+      placeholder: Mobile Address→Payment completion rises from 61% to 80%+ by Q4.
+    validations:
+      required: true
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: Strategic alignment
+      description: Which strategy pillar does this serve? (Pillars are defined in kb/strategy/.)
+      options:
+        - Self-service first
+        - Speed as a feature
+        - Trust and clarity
+        - None of the above (explain in the problem statement)
+    validations:
+      required: true
+  - type: dropdown
+    id: timeframe
+    attributes:
+      label: Proposed timeframe
+      options:
+        - Now
+        - Next
+        - Later
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything else — risks, dependencies, open questions.
+    validations:
+      required: false

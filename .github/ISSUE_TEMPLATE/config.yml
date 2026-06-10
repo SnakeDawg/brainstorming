@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: How this knowledge base works
+    url: https://github.com/SnakeDawg/brainstorming/blob/main/POC-GUIDE.md
+    about: The guide to the knowledge base, forms, states, and automation.

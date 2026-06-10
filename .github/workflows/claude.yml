@@ -1,0 +1,41 @@
+# Claude on this repo: mention @claude in any issue or PR comment and Claude
+# reads the thread + the repo, replies, updates docs, or opens a PR.
+#
+# This workflow is INERT until two things happen:
+#   1. An Anthropic API key is added as the repository secret
+#      ANTHROPIC_API_KEY (Settings -> Secrets and variables -> Actions).
+#   2. The repository variable ENABLE_CLAUDE is set to "true"
+#      (Settings -> Secrets and variables -> Actions -> Variables).
+# Until then, the `if:` condition below is false and the job never runs.
+#
+# On GitHub Enterprise Server additionally:
+#   - change runs-on to your self-hosted runner label, e.g. [self-hosted]
+#   - the runner needs outbound network access to api.anthropic.com
+# See kb/ai-on-github.md for the full explanation.
+name: Claude
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  claude:
+    if: |
+      vars.ENABLE_CLAUDE == 'true' &&
+      contains(github.event.comment.body, '@claude')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: |
+            --max-turns 15

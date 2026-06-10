@@ -1,0 +1,56 @@
+name: Feature brief
+description: Spec a feature supporting front-end work. Closed briefs are appended to the roadmap in kb/roadmaps/ automatically.
+title: "[Feature] "
+labels: ["kb", "feature", "status:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A product manager fills this in to brief a piece of front-end work.
+        When the issue is closed, a row is appended to the roadmap in
+        `kb/roadmaps/` automatically.
+  - type: textarea
+    id: user-need
+    attributes:
+      label: User need
+      description: Who needs this and what are they trying to do?
+      placeholder: Mobile customers updating payment details can't see the form without scrolling...
+    validations:
+      required: true
+  - type: input
+    id: surface
+    attributes:
+      label: Page or component affected
+      placeholder: Billing page / payment form
+    validations:
+      required: true
+  - type: textarea
+    id: design-notes
+    attributes:
+      label: Design / UX notes
+      description: Sketches, links to mockups, interaction notes.
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checkable statements that define "done".
+      placeholder: |
+        - Payment form is fully visible above the fold on a 390px viewport
+        - p75 time-to-interactive under 2s on the billing route
+    validations:
+      required: true
+  - type: dropdown
+    id: roadmap-item
+    attributes:
+      label: Roadmap item this supports
+      description: From kb/roadmaps/customer-portal-roadmap.md
+      options:
+        - Self-service password & MFA reset flow
+        - Billing page p75 load time under 2s
+        - In-portal plan change with proration preview
+        - System status banner with incident history
+        - New item (will be added to the roadmap)
+    validations:
+      required: true

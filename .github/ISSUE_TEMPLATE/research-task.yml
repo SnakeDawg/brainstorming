@@ -1,0 +1,33 @@
+name: Research task
+description: Pose a research or analysis question. Findings are filed into kb/research/ automatically when this issue is closed.
+title: "[Research] "
+labels: ["kb", "research", "status:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Pose the question, work the findings in this issue (edit the
+        Findings field or add comments), and close the issue when done —
+        the write-up is filed into `kb/research/` automatically.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: The question this research should answer, in one or two sentences.
+      placeholder: Should the portal adopt an off-the-shelf design system or extend the in-house library?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Why this matters now. Link related strategy, roadmap, or analysis docs.
+    validations:
+      required: true
+  - type: textarea
+    id: findings
+    attributes:
+      label: Findings
+      description: Leave blank at first; edit this issue to record findings as the research progresses.
+    validations:
+      required: false
