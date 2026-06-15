@@ -1,0 +1,12 @@
+# Secrets — never commit your Medium credentials
+config.json
+cookie.txt
+*.local
+
+# Your archived content stays local; keep the folder, ignore its contents
+library/*
+!library/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
