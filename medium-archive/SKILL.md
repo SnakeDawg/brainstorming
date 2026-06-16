@@ -52,15 +52,17 @@ Run everything from inside this folder.
 Discovery flags `--tag`, `--publication`, and `--author` are mutually
 exclusive — pick one per run. `--limit` caps how many recent items are taken
 from the feed (default 10). `--full` fetches each article page for complete
-text rather than the (sometimes truncated) RSS summary; when a cookie is
-present, full fetch happens automatically.
+text rather than the RSS summary; when a cookie is present, full fetch happens
+automatically. Tag-feed archives need `--full` because the tag RSS carries only
+a snippet; author and publication feeds already include the full body.
 
 ## How it works
 
 1. **Discovery** uses Medium's public RSS feeds:
    `https://medium.com/feed/tag/<tag>`, `.../feed/<publication>`,
-   `.../feed/@<author>`. These return the most recent posts with metadata and
-   (often) full HTML content.
+   `.../feed/@<author>`. Author and publication feeds embed the full article
+   HTML, so RSS alone archives complete text. **Tag feeds return only a short
+   snippet** — pass `--full` to fetch each page for the complete body.
 2. **Extraction** converts the article HTML to Markdown. For full-page fetches
    it isolates the `<article>` element and drops navigation, scripts, and
    footers. Member-only pages require your cookie; without it the tool falls

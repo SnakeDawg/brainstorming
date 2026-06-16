@@ -152,7 +152,11 @@ def parse_feed(xml_bytes: bytes) -> list[dict]:
         categories = [
             _text(c) for c in item.findall("category") if _text(c)
         ]
+        # Author/publication feeds carry full <content:encoded>; tag feeds
+        # only provide a snippet in <description>. Fall back to the latter so
+        # tag-feed items aren't silently empty.
         content = _text(item.find("content:encoded", RSS_NS))
+        description = _text(item.find("description"))
         items.append(
             {
                 "title": title,
@@ -160,7 +164,7 @@ def parse_feed(xml_bytes: bytes) -> list[dict]:
                 "author": creator,
                 "published": normalize_date(pub_date),
                 "tags": categories,
-                "content_html": content,
+                "content_html": content or description,
             }
         )
     return items
@@ -179,6 +183,21 @@ def discover(*, tag=None, publication=None, author=None, limit=10,
 # Full-text extraction
 # --------------------------------------------------------------------------- #
 
+# Medium wraps its UI chrome — byline avatars, clap/bookmark/share/listen
+# buttons, "read more" recirculation — in anchors that all carry one of these
+# markers. Author-written in-body links keep their original href, so dropping
+# these strips the boilerplate without losing real content links.
+_CHROME_LINK_MARKERS = (
+    "/m/signin", "/plans?", "/membership",
+    "source=post_page", "source=---", "source=rss",
+)
+
+
+def _is_chrome_link(href: str) -> bool:
+    h = (href or "").lower()
+    return any(marker in h for marker in _CHROME_LINK_MARKERS)
+
+
 class _ArticleExtractor(HTMLParser):
     """Pull the <article> subtree out of a Medium page and convert to Markdown.
 
@@ -196,10 +215,11 @@ class _ArticleExtractor(HTMLParser):
         self.parts: list[str] = []
         self._list_stack: list[str] = []
         self._skip_depth = 0     # inside script/style/svg
+        self._skip_anchor = False  # inside a Medium chrome anchor
 
     # -- helpers ---------------------------------------------------------- #
     def _emit(self, text: str) -> None:
-        if self.in_article and self._skip_depth == 0:
+        if self.in_article and self._skip_depth == 0 and not self._skip_anchor:
             self.parts.append(text)
 
     # -- parser callbacks ------------------------------------------------- #
@@ -239,8 +259,11 @@ class _ArticleExtractor(HTMLParser):
         elif tag in ("ul", "ol"):
             self._list_stack.append(tag)
         elif tag == "a" and attrs.get("href"):
-            self._emit("[")
-            self._href = attrs["href"]
+            if _is_chrome_link(attrs["href"]):
+                self._skip_anchor = True
+            else:
+                self._emit("[")
+                self._href = attrs["href"]
         elif tag == "img" and attrs.get("src"):
             alt = attrs.get("alt", "image")
             self._emit(f"\n\n![{alt}]({attrs['src']})\n")
@@ -265,9 +288,12 @@ class _ArticleExtractor(HTMLParser):
             self._emit("`")
         elif tag in ("ul", "ol") and self._list_stack:
             self._list_stack.pop()
-        elif tag == "a" and getattr(self, "_href", None):
-            self._emit(f"]({self._href})")
-            self._href = None
+        elif tag == "a":
+            if self._skip_anchor:
+                self._skip_anchor = False
+            elif getattr(self, "_href", None):
+                self._emit(f"]({self._href})")
+                self._href = None
 
     def handle_data(self, data):
         if self.in_article and self._skip_depth == 0:
@@ -289,8 +315,34 @@ def html_to_markdown(html_text: str) -> str:
         html_text = f"<article>{html_text}</article>"
     parser = _ArticleExtractor()
     parser.feed(html_text)
-    md = parser.markdown()
-    return html.unescape(md)
+    md = html.unescape(parser.markdown())
+    return _clean_medium_boilerplate(md)
+
+
+# Pure-UI text Medium injects into the article body (image lightbox hint, lazy
+# placeholders). Stripped because they aren't content. The lightbox phrase is
+# glued between a paragraph and its figure caption, so it becomes a break.
+_MEDIUM_BOILERPLATE = (
+    "Press enter or click to view image in full size",
+)
+# Short header/footer chrome paragraphs left over once anchors are dropped.
+_LEADING_CHROME = {
+    "--", "share", "follow", "listen", "sign in", "sign up", "get started",
+    "open in app", "member-only story", "·", "more from",
+}
+
+
+def _clean_medium_boilerplate(md: str) -> str:
+    for phrase in _MEDIUM_BOILERPLATE:
+        md = md.replace(phrase, "\n\n")
+    blocks = md.split("\n\n")
+    # A leading H1 (the title) is kept, but header chrome can sit just beneath
+    # it; trim from there so "-- / Share" residue doesn't lead the body.
+    start = 1 if blocks and blocks[0].lstrip().startswith("# ") else 0
+    while len(blocks) > start and blocks[start].strip().lower() in _LEADING_CHROME:
+        blocks.pop(start)
+    md = "\n\n".join(blocks)
+    return re.sub(r"\n{3,}", "\n\n", md).strip()
 
 
 def extract_full_article(url: str, cookie: str) -> str:
@@ -348,9 +400,19 @@ def render_markdown(front: dict, body: str) -> str:
     lines.append("")
     lines.append(f"# {front.get('title', '')}".rstrip())
     lines.append("")
-    lines.append(body.strip())
+    lines.append(_strip_leading_h1(body))
     lines.append("")
     return "\n".join(lines)
+
+
+def _strip_leading_h1(body: str) -> str:
+    """Drop a leading H1 line; render_markdown emits the canonical title itself,
+    and extracted/RSS bodies usually repeat it as their first heading."""
+    body = body.strip()
+    if body.startswith("# "):
+        _, _, rest = body.partition("\n")
+        return rest.strip()
+    return body
 
 
 def update_catalog(library: Path, entries: list[dict]) -> None:
