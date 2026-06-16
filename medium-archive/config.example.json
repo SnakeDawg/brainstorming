@@ -1,0 +1,6 @@
+{
+  "_comment": "Copy this file to config.json and fill in your values. config.json is git-ignored. All fields are optional; CLI flags and env vars (MEDIUM_COOKIE, MEDIUM_LIBRARY) override these.",
+  "cookie": "sid=PASTE_YOUR_MEDIUM_COOKIE_HERE; uid=...",
+  "cookie_file": null,
+  "library": "library"
+}
