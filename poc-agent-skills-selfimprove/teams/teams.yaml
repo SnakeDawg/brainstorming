@@ -1,0 +1,67 @@
+# Hermes Agent POC — Team Configuration
+#
+# Source of truth for team membership and the scenarios that bind teams together.
+# Aliases let prompts/conversation refer to a team by either short key
+# ("commercial_strategy"), letter ("Team A"), or full display name
+# ("Commercial Strategy Team") — all resolve to the same roster.
+#
+# Persona keys (e.g. "sales") map 1:1 to files in personas/<key>.md.
+# display_name is what the moderator should use in narrated output
+# ("the Sales Representative said…").
+
+teams:
+
+  commercial_strategy:
+    aliases: ["Team A", "Commercial Strategy Team"]
+    description: >
+      Outward-facing GTM team. Represents how the business sells, positions,
+      and roadmaps the product.
+    members:
+      - { key: sales,     display_name: "Sales Representative" }
+      - { key: pdm,       display_name: "Product Manager (PDM)" }
+      - { key: marketing, display_name: "Marketing Manager" }
+
+  customer_reality:
+    aliases: ["Team B", "Customer Reality Team"]
+    description: >
+      Post-sale team. Represents what customers actually experience after the
+      contract is signed and the product is in production.
+    members:
+      - { key: support,  display_name: "Support Lead" }
+      - { key: services, display_name: "Services Lead" }
+
+  # ---- Future expansion (seeded now so they are reusable) ----
+
+  feasibility:
+    aliases: ["Team C", "Feasibility Team"]
+    status: future
+    description: >
+      Build-and-deliver team. Represents whether something can actually be
+      built, sourced, and shipped at the cost and timeline implied.
+    members:
+      - { key: engineering,  display_name: "Engineering Lead" }
+      - { key: supply_chain, display_name: "Supply Chain Planner" }
+      - { key: procurement,  display_name: "Procurement Manager" }
+
+  executive_review:
+    aliases: ["Team D", "Executive Review Team"]
+    status: future
+    description: >
+      Leadership team. Represents go/no-go authority, capital allocation, and
+      strategic direction.
+    members:
+      - { key: president, display_name: "President" }
+      - { key: finance,   display_name: "Finance Lead" }
+      - { key: cto,       display_name: "CTO" }
+
+
+scenarios:
+
+  cross_functional_workshop:
+    description: >
+      Primary POC scenario. Sales + PDM + Marketing + Support + Services
+      negotiate the top 5 requirements for the next commercial platform.
+    teams: [commercial_strategy, customer_reality]
+    rounds: 5
+    output_format: structured_requirements
+    rubric: evaluation/rubric.md

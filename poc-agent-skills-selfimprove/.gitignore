@@ -1,0 +1,16 @@
+# Saved simulation runs are local by default.
+# Commit a specific run by force-adding it: `git add -f outputs/<file>`.
+outputs/
+
+# In-progress round files — written during a run, one per round.
+# The directory itself is tracked (via .gitkeep); contents are not.
+# Force-add to share a specific run: `git add -f .working/<file>`.
+.working/*
+!.working/.gitkeep
+!.working/sample/
+
+# Editor / OS noise
+.DS_Store
+*.swp
+.idea/
+.vscode/
