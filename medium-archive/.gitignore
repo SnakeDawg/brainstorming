@@ -3,6 +3,9 @@ config.json
 cookie.txt
 *.local
 
+# Your standing-interests config stays local (topics.example.yaml is tracked)
+topics.yaml
+
 # Your archived content stays local; keep the folder, ignore its contents
 library/*
 !library/.gitkeep
