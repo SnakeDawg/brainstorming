@@ -271,7 +271,11 @@ class _ArticleExtractor(HTMLParser):
         if tag in ("script", "style", "svg", "noscript"):
             self._skip_depth = max(0, self._skip_depth - 1)
             return
-        if tag in ("b", "strong"):
+        if tag in ("h1", "h2", "h3", "h4", "h5", "h6"):
+            # Markdown headings are single-line: terminate the heading so the
+            # next text (e.g. Medium's "N min read" byline) isn't glued onto it.
+            self._emit("\n\n")
+        elif tag in ("b", "strong"):
             self._emit("**")
         elif tag in ("i", "em"):
             self._emit("*")

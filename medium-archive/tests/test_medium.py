@@ -34,6 +34,17 @@ def test_html_to_markdown_keeps_content_drops_chrome():
     assert "view image in full size" not in md
 
 
+def test_heading_not_glued_to_following_text():
+    # A Medium byline ("7 min read·Just now") sits right after the title <h1>
+    # with no block separator. The extractor must terminate the heading so the
+    # byline lands on its own line -- and must NOT delete it; it is article text.
+    md = medium.html_to_markdown((FIX / "article.html").read_text())
+    lines = md.splitlines()
+    assert "# Eval for RAG" in lines              # title heading on its own line
+    assert not any(ln.startswith("#") and "min read" in ln for ln in lines)
+    assert "7 min read" in md                     # byline retained, just separated
+
+
 def test_extract_full_article_uses_http_get(monkeypatch):
     raw = (FIX / "article.html").read_bytes()
     monkeypatch.setattr(medium, "http_get", lambda url, cookie="": raw)
