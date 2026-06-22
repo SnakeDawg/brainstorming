@@ -1,15 +1,26 @@
 #!/usr/bin/env python3
-"""medium_archive.py — search Medium and archive articles to a local library.
+"""medium.py — thin Medium fetch/extract helper.
 
 Self-contained: Python 3.8+ standard library only. No pip installs, no
 dependency on anything outside this folder.
 
-Discovery uses Medium's public RSS feeds (by tag, publication, or author).
-Full-text extraction fetches the article page; for member-only posts you must
-supply your own Medium session cookie (you are a paying subscriber accessing
-content you already have rights to read — this tool just saves a local copy).
+This is deliberately *thin*: it exposes only two operations and prints
+machine-friendly output to stdout. All orchestration — reading the topics
+config, deciding what is new, summarizing, filing into the corpus, indexing,
+and querying — lives in the `medium-archive` skill, not here.
 
-Run `python3 medium_archive.py --help` for usage.
+  discover <feed-spec> [--limit N]   -> JSON array of candidate articles
+  extract  <url>                     -> article body as Markdown
+
+`<feed-spec>` is one of `tag:<x>`, `pub:<x>`, or `author:@<x>`.
+
+Discovery uses Medium's public RSS feeds. Full-text extraction fetches the
+article page; for member-only posts you must supply your own Medium session
+cookie (you are a paying subscriber accessing content you already have rights
+to read — this tool just saves a local copy). The cookie is read at runtime
+and never written into any output.
+
+Run `python3 medium.py --help` for usage.
 """
 
 from __future__ import annotations
@@ -21,7 +32,6 @@ import json
 import os
 import re
 import sys
-import time
 import urllib.error
 import urllib.request
 from html.parser import HTMLParser
@@ -33,13 +43,12 @@ from xml.etree import ElementTree as ET
 # --------------------------------------------------------------------------- #
 
 HERE = Path(__file__).resolve().parent
-DEFAULT_LIBRARY = HERE / "library"
 CONFIG_PATH = HERE / "config.json"
 USER_AGENT = (
-    "Mozilla/5.0 (compatible; medium-archive/1.0; personal archival tool)"
+    "Mozilla/5.0 (compatible; medium-archive/2.0; personal archival tool)"
 )
 REQUEST_TIMEOUT = 30
-POLITE_DELAY = 1.5  # seconds between network requests
+POLITE_DELAY = 1.5  # seconds between network requests (used by callers)
 
 RSS_NS = {
     "content": "http://purl.org/rss/1.0/modules/content/",
@@ -91,22 +100,6 @@ def resolve_cookie(args, config: dict) -> str:
     return ""
 
 
-def resolve_library(args, config: dict) -> Path:
-    raw = (
-        getattr(args, "library", None)
-        or os.environ.get("MEDIUM_LIBRARY")
-        or config.get("library")
-    )
-    if raw:
-        path = Path(raw)
-        if not path.is_absolute():
-            path = HERE / path
-    else:
-        path = DEFAULT_LIBRARY
-    path.mkdir(parents=True, exist_ok=True)
-    return path
-
-
 # --------------------------------------------------------------------------- #
 # HTTP
 # --------------------------------------------------------------------------- #
@@ -135,7 +128,7 @@ def build_feed_url(*, tag=None, publication=None, author=None) -> str:
     raise ValueError("one of tag, publication, or author is required")
 
 
-def parse_feed(xml_bytes: bytes) -> list[dict]:
+def parse_feed(xml_bytes: bytes) -> list:
     """Parse a Medium RSS feed into a list of article dicts."""
     root = ET.fromstring(xml_bytes)
     channel = root.find("channel")
@@ -170,8 +163,8 @@ def parse_feed(xml_bytes: bytes) -> list[dict]:
     return items
 
 
-def discover(*, tag=None, publication=None, author=None, limit=10,
-             cookie="") -> list[dict]:
+def discover(*, tag=None, publication=None, author=None, limit=15,
+             cookie="") -> list:
     feed_url = build_feed_url(tag=tag, publication=publication, author=author)
     log(f"fetching feed: {feed_url}")
     raw = http_get(feed_url, cookie=cookie)
@@ -212,8 +205,8 @@ class _ArticleExtractor(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.depth = 0           # nesting depth inside <article>
         self.in_article = False
-        self.parts: list[str] = []
-        self._list_stack: list[str] = []
+        self.parts = []
+        self._list_stack = []
         self._skip_depth = 0     # inside script/style/svg
         self._skip_anchor = False  # inside a Medium chrome anchor
 
@@ -360,104 +353,7 @@ def extract_full_article(url: str, cookie: str) -> str:
 
 
 # --------------------------------------------------------------------------- #
-# Storage
-# --------------------------------------------------------------------------- #
-
-def save_article(article: dict, topic: str, library: Path,
-                 body_markdown: str) -> Path:
-    topic_dir = library / slugify(topic or "uncategorized")
-    topic_dir.mkdir(parents=True, exist_ok=True)
-    slug = slugify(article.get("title") or "untitled") or "untitled"
-    path = topic_dir / f"{slug}.md"
-    # Avoid clobbering distinct articles that slugify the same.
-    if path.exists():
-        existing = path.read_text(encoding="utf-8")
-        if article.get("url") and article["url"] not in existing:
-            path = topic_dir / f"{slug}-{short_hash(article['url'])}.md"
-
-    front = {
-        "title": article.get("title", ""),
-        "author": article.get("author", ""),
-        "url": article.get("url", ""),
-        "published": article.get("published", ""),
-        "topic": topic,
-        "tags": article.get("tags", []),
-        "archived": _dt.date.today().isoformat(),
-    }
-    path.write_text(render_markdown(front, body_markdown), encoding="utf-8")
-    return path
-
-
-def render_markdown(front: dict, body: str) -> str:
-    lines = ["---"]
-    for key, value in front.items():
-        if isinstance(value, list):
-            rendered = "[" + ", ".join(yaml_scalar(v) for v in value) + "]"
-        else:
-            rendered = yaml_scalar(value)
-        lines.append(f"{key}: {rendered}")
-    lines.append("---")
-    lines.append("")
-    lines.append(f"# {front.get('title', '')}".rstrip())
-    lines.append("")
-    lines.append(_strip_leading_h1(body))
-    lines.append("")
-    return "\n".join(lines)
-
-
-def _strip_leading_h1(body: str) -> str:
-    """Drop a leading H1 line; render_markdown emits the canonical title itself,
-    and extracted/RSS bodies usually repeat it as their first heading."""
-    body = body.strip()
-    if body.startswith("# "):
-        _, _, rest = body.partition("\n")
-        return rest.strip()
-    return body
-
-
-def update_catalog(library: Path, entries: list[dict]) -> None:
-    """Maintain catalog.json (machine) and INDEX.md (human) at library root."""
-    catalog_path = library / "catalog.json"
-    catalog: dict[str, dict] = {}
-    if catalog_path.exists():
-        try:
-            for row in json.loads(catalog_path.read_text(encoding="utf-8")):
-                catalog[row["url"]] = row
-        except (OSError, json.JSONDecodeError, KeyError):
-            catalog = {}
-    for entry in entries:
-        if entry.get("url"):
-            catalog[entry["url"]] = entry
-    rows = sorted(catalog.values(),
-                  key=lambda r: (r.get("topic", ""), r.get("published", "")),
-                  reverse=False)
-    catalog_path.write_text(json.dumps(rows, indent=2, ensure_ascii=False),
-                            encoding="utf-8")
-    _write_index_md(library, rows)
-
-
-def _write_index_md(library: Path, rows: list[dict]) -> None:
-    lines = ["# Medium archive index", "",
-             f"_{len(rows)} article(s) archived. "
-             f"Updated {_dt.date.today().isoformat()}._", ""]
-    by_topic: dict[str, list[dict]] = {}
-    for row in rows:
-        by_topic.setdefault(row.get("topic") or "uncategorized", []).append(row)
-    for topic in sorted(by_topic):
-        lines.append(f"## {topic}")
-        lines.append("")
-        for row in sorted(by_topic[topic], key=lambda r: r.get("title", "")):
-            rel = row.get("path", "")
-            title = row.get("title", "untitled")
-            author = row.get("author", "")
-            suffix = f" — {author}" if author else ""
-            lines.append(f"- [{title}]({rel}){suffix}")
-        lines.append("")
-    (library / "INDEX.md").write_text("\n".join(lines), encoding="utf-8")
-
-
-# --------------------------------------------------------------------------- #
-# Utilities
+# Utilities (exposed for the skill to reuse via `python3 -c`)
 # --------------------------------------------------------------------------- #
 
 def slugify(text: str) -> str:
@@ -470,15 +366,6 @@ def slugify(text: str) -> str:
 def short_hash(text: str) -> str:
     import hashlib
     return hashlib.sha1(text.encode("utf-8")).hexdigest()[:8]
-
-
-def yaml_scalar(value) -> str:
-    s = str(value)
-    if s == "":
-        return '""'
-    if re.search(r'[:\#\[\]\{\}",\n]', s) or s.strip() != s:
-        return '"' + s.replace('"', '\\"') + '"'
-    return s
 
 
 def normalize_date(raw: str) -> str:
@@ -499,148 +386,66 @@ def _text(node) -> str:
 
 
 # --------------------------------------------------------------------------- #
-# Commands
+# CLI
 # --------------------------------------------------------------------------- #
 
-def cmd_search(args, config) -> int:
+def _parse_feed_spec(spec: str) -> dict:
+    """'tag:rag' / 'pub:better-programming' / 'author:@x' -> discover kwargs."""
+    kind, _, value = spec.partition(":")
+    if not value:
+        raise ValueError(f"feed-spec must be kind:value, got {spec!r}")
+    kind = kind.lower()
+    if kind == "tag":
+        return {"tag": value}
+    if kind in ("pub", "publication"):
+        return {"publication": value}
+    if kind == "author":
+        return {"author": value}
+    raise ValueError(f"unknown feed kind {kind!r} (use tag/pub/author)")
+
+
+def cmd_discover(args, config) -> int:
     cookie = resolve_cookie(args, config)
-    items = discover(tag=args.tag, publication=args.publication,
-                     author=args.author, limit=args.limit, cookie=cookie)
-    if not items:
-        log("no articles found")
-        return 1
-    for i, art in enumerate(items, 1):
-        print(f"{i:2}. {art['title']}")
-        print(f"    {art['author']}  ·  {art['published']}")
-        print(f"    {art['url']}")
-    return 0
+    kwargs = _parse_feed_spec(args.feed)
+    items = discover(limit=args.limit, cookie=cookie, **kwargs)
+    out = [
+        {"title": it["title"], "url": it["url"], "author": it["author"],
+         "published": it["published"], "tags": it["tags"]}
+        for it in items
+    ]
+    print(json.dumps(out, indent=2, ensure_ascii=False))
+    return 0 if out else 1
 
 
-def cmd_archive(args, config) -> int:
+def cmd_extract(args, config) -> int:
     cookie = resolve_cookie(args, config)
-    library = resolve_library(args, config)
-    topic = args.topic or args.tag or args.publication or args.author or "uncategorized"
-    items = discover(tag=args.tag, publication=args.publication,
-                     author=args.author, limit=args.limit, cookie=cookie)
-    if not items:
-        log("no articles found")
-        return 1
-    if not cookie:
-        log("note: no Medium cookie set — member-only posts may save partial "
-            "text. See README.md to add your subscriber cookie.")
-
-    catalog_entries = []
-    saved = 0
-    for art in items:
-        body = ""
-        if args.full or cookie:
-            body = extract_full_article(art["url"], cookie)
-            time.sleep(POLITE_DELAY)
-        if not body:
-            body = html_to_markdown(art.get("content_html", ""))
-        if not body:
-            log(f"  skipped (no content): {art['title']}")
-            continue
-        path = save_article(art, topic, library, body)
-        rel = path.relative_to(library).as_posix()
-        catalog_entries.append({
-            "title": art["title"], "author": art["author"],
-            "url": art["url"], "published": art["published"],
-            "topic": slugify(topic), "tags": art.get("tags", []),
-            "path": rel,
-        })
-        saved += 1
-        log(f"  saved: {rel}")
-
-    update_catalog(library, catalog_entries)
-    log(f"done: {saved} article(s) into {library}")
-    return 0 if saved else 1
-
-
-def cmd_fetch(args, config) -> int:
-    cookie = resolve_cookie(args, config)
-    library = resolve_library(args, config)
-    topic = args.topic or "uncategorized"
     body = extract_full_article(args.url, cookie)
     if not body:
         log("could not extract article body (paywalled without a valid "
             "cookie, or unsupported page layout)")
         return 1
-    title = _guess_title(args.url, body)
-    article = {"title": title, "url": args.url.split("?")[0],
-               "author": "", "published": "", "tags": []}
-    path = save_article(article, topic, library, body)
-    rel = path.relative_to(library).as_posix()
-    update_catalog(library, [{
-        "title": title, "author": "", "url": article["url"],
-        "published": "", "topic": slugify(topic), "tags": [], "path": rel,
-    }])
-    log(f"saved: {rel}")
+    print(body)
     return 0
 
 
-def cmd_list(args, config) -> int:
-    library = resolve_library(args, config)
-    catalog_path = library / "catalog.json"
-    if not catalog_path.exists():
-        log("library is empty")
-        return 0
-    rows = json.loads(catalog_path.read_text(encoding="utf-8"))
-    for row in rows:
-        print(f"[{row.get('topic','')}] {row.get('title','')}")
-        print(f"    {row.get('path','')}")
-    print(f"\n{len(rows)} article(s) in {library}")
-    return 0
-
-
-def _guess_title(url: str, body: str) -> str:
-    m = re.search(r"^#\s+(.+)$", body, re.MULTILINE)
-    if m:
-        return m.group(1).strip()
-    tail = url.rstrip("/").split("/")[-1]
-    tail = re.sub(r"-[0-9a-f]{8,}$", "", tail)
-    return tail.replace("-", " ").title() or "Untitled"
-
-
-# --------------------------------------------------------------------------- #
-# CLI
-# --------------------------------------------------------------------------- #
-
-def build_parser() -> argparse.ArgumentParser:
+def build_parser():
     p = argparse.ArgumentParser(
-        prog="medium_archive",
-        description="Search Medium and archive articles to a local library.",
-    )
+        description="Thin Medium fetch/extract helper. The skill orchestrates; "
+                    "this just discovers feeds and extracts articles.")
     sub = p.add_subparsers(dest="command", required=True)
 
-    def add_common(sp):
-        sp.add_argument("--library", help="library root (default ./library)")
-        sp.add_argument("--cookie", help="Medium Cookie header value")
-        sp.add_argument("--cookie-file", help="path to a file with the cookie")
+    def add_auth(sp):
+        sp.add_argument("--cookie", help="Medium session cookie")
+        sp.add_argument("--cookie-file", help="path to a file holding the cookie")
 
-    def add_discovery(sp):
-        g = sp.add_mutually_exclusive_group(required=True)
-        g.add_argument("--tag", help="topic tag, e.g. machine-learning")
-        g.add_argument("--publication", help="publication slug, e.g. better-programming")
-        g.add_argument("--author", help="author handle, e.g. @username")
-        sp.add_argument("--limit", type=int, default=10, help="max articles")
+    d = sub.add_parser("discover", help="list feed candidates as JSON")
+    add_auth(d)
+    d.add_argument("feed", help="feed spec: tag:<x> | pub:<x> | author:@<x>")
+    d.add_argument("--limit", type=int, default=15, help="max items (default 15)")
 
-    s = sub.add_parser("search", help="list articles for a topic (no download)")
-    add_common(s); add_discovery(s)
-
-    a = sub.add_parser("archive", help="search + download into the library")
-    add_common(a); add_discovery(a)
-    a.add_argument("--topic", help="folder name to file under (default: the tag)")
-    a.add_argument("--full", action="store_true",
-                   help="fetch each article page for complete text")
-
-    f = sub.add_parser("fetch", help="archive a single known article URL")
-    add_common(f)
-    f.add_argument("--url", required=True)
-    f.add_argument("--topic", help="folder name to file under")
-
-    l = sub.add_parser("list", help="show the local catalog")
-    add_common(l)
+    e = sub.add_parser("extract", help="print one article as Markdown")
+    add_auth(e)
+    e.add_argument("url", help="Medium article URL")
 
     return p
 
@@ -649,22 +454,16 @@ def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
     config = load_config()
     try:
-        return {
-            "search": cmd_search,
-            "archive": cmd_archive,
-            "fetch": cmd_fetch,
-            "list": cmd_list,
-        }[args.command](args, config)
+        return {"discover": cmd_discover, "extract": cmd_extract}[args.command](
+            args, config)
     except urllib.error.HTTPError as exc:
         log(f"HTTP error {exc.code}: {exc.reason} ({exc.url})")
         if exc.code in (401, 403):
             log("This looks like an auth issue — check your Medium cookie.")
         return 2
-    except urllib.error.URLError as exc:
-        log(f"network error: {exc.reason}")
+    except (ValueError, urllib.error.URLError) as exc:
+        log(f"error: {exc}")
         return 2
-    except KeyboardInterrupt:
-        return 130
 
 
 if __name__ == "__main__":

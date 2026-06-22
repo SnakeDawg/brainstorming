@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/"
+     xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Stories tagged rag</title>
+    <item>
+      <title>Eval for RAG</title>
+      <link>https://medium.com/p/abc123?source=rss----xyz</link>
+      <dc:creator>Jane Doe</dc:creator>
+      <pubDate>Tue, 10 Jun 2026 12:00:00 GMT</pubDate>
+      <category>rag</category>
+      <category>evaluation</category>
+      <content:encoded><![CDATA[<article><h1>Eval for RAG</h1><p>Body one.</p></article>]]></content:encoded>
+    </item>
+    <item>
+      <title>Chunking 101</title>
+      <link>https://medium.com/p/def456</link>
+      <dc:creator>John Roe</dc:creator>
+      <pubDate>Wed, 11 Jun 2026 09:30:00 GMT</pubDate>
+      <category>rag</category>
+      <content:encoded><![CDATA[<article><h1>Chunking 101</h1><p>Body two.</p></article>]]></content:encoded>
+    </item>
+  </channel>
+</rss>

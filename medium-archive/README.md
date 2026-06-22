@@ -1,111 +1,142 @@
 # medium-archive
 
-A self-contained tool + skill for building a **local Markdown library of
-Medium articles** on the topics you care about. Standard-library Python only —
-no `pip install`, no dependency on anything outside this folder. Copy the
-`medium-archive/` directory anywhere and it works.
+A self-contained **skill** for building and querying a personal **knowledge
+corpus** of Medium articles. You drive it by talking to your agent — no flags
+to memorize. It reads a `topics.yaml` config of your standing interests, fetches
+and cleans articles through a thin Python helper, summarizes each one, files it
+as Markdown, and keeps an index so you can reference and learn from the corpus
+later.
+
+Standard-library Python only — no `pip install`, no dependency on anything
+outside this folder. Copy `medium-archive/` anywhere and it works.
 
 ```
 medium-archive/
-├── SKILL.md            ← skill definition (what it does, when to use it)
-├── README.md           ← this file (setup + usage)
-├── medium_archive.py   ← the tool (Python 3.8+, stdlib only)
-├── config.example.json ← copy to config.json to set cookie/library
-└── library/            ← your archive lands here (catalog.json + INDEX.md)
+├── SKILL.md             ← skill definition (the brain: workflows + formats)
+├── README.md            ← this file (setup + how it works)
+├── medium.py            ← thin helper: discover + extract (Python 3.8+, stdlib)
+├── topics.example.yaml  ← copy to topics.yaml to set your standing interests
+├── config.example.json  ← copy to config.json to set cookie/library
+└── library/             ← your corpus lands here (catalog.json + INDEX.md)
 ```
+
+## The four things you can ask for
+
+Talk to the skill in plain language; it does the rest.
+
+| You say… | What happens |
+|---|---|
+| **"Set up my Medium topics"** | A short Q&A wizard writes `topics.yaml` for you. |
+| **"Sync my Medium archive"** | Pulls anything new across your topics/authors/publications into the corpus, summarizing each article. |
+| **"Archive this URL"** / **"save recent articles on `rag`"** | Ad-hoc capture of one link or a topic. |
+| **"What have I saved about `<X>`?"** / **"what's new in `<topic>`?"** | Searches the corpus and answers with citations. |
 
 ## Quick start
 
-You run everything with `python3 medium_archive.py <command>` from inside this
-folder. There are four commands: **`search`** (preview), **`archive`**
-(download many), **`fetch`** (download one URL), and **`list`** (show what you
-have). Here is the zero-to-archived path:
-
-```bash
-cd medium-archive
-
-# 1. PREVIEW — list recent articles for a tag. Nothing is downloaded.
-#    Public posts work with no login.
-python3 medium_archive.py search --tag machine-learning --limit 10
-
-# 2. ARCHIVE — download those articles into ./library/ml/
-#    --topic ml = the subfolder to file them under
-#    --full     = fetch each full article page (see "When do I need --full?")
-python3 medium_archive.py archive --tag machine-learning --topic ml --full
-
-# 3. REVIEW — print everything you've collected
-python3 medium_archive.py list
+```
+1. Ask: "set up my Medium topics"   → builds topics.yaml
+2. (optional) set your cookie        → see Authentication, for paywalled posts
+3. Ask: "sync my Medium archive"     → captures new articles
+4. Browse library/INDEX.md, or ask:  "what have I saved about RAG eval?"
 ```
 
-Then open `library/INDEX.md` to browse your archive, grouped by topic.
+## topics.yaml — your standing interests
 
-That's the whole loop. The two things worth understanding before you go further
-are **when you need `--full`** (next section) and **when you need a cookie**
-(the Authentication section) — both only matter once you reach for full text or
-paywalled articles.
+Created by the wizard (or copy `topics.example.yaml`). It's git-ignored.
 
-## When do I need `--full`?
+```yaml
+topics:        [large-language-models, retrieval-augmented-generation]  # Medium tags
+authors:       ["@kentcdodds"]
+publications:  [better-programming]
+limit_per_feed: 15
+```
 
-`--full` makes the tool fetch each article's actual web page for the complete
-body, instead of using only what Medium's RSS feed hands over. Whether you need
-it depends on *how you're discovering* articles:
+Every section is optional. Sync turns each entry into a Medium RSS feed.
 
-| You are archiving by… | Does RSS include full text? | Use `--full`? |
-|---|---|---|
-| `--tag` | No — only a short snippet | **Yes**, or you'll save stubs |
-| `--publication` | Yes — full body is embedded | Optional |
-| `--author` | Yes — full body is embedded | Optional |
+## What the corpus looks like
 
-**Shortcut:** if you set a cookie (see below), full-page fetching happens
-**automatically** for every article — you don't need to pass `--full` at all.
-So in practice: add `--full` when archiving by `--tag` *without* a cookie, and
-otherwise don't worry about it.
+Articles are grouped by **topic** (a subfolder), each a Markdown file with
+front matter that now includes an AI-generated **summary** and **takeaways**:
 
-`search` never downloads article bodies, so `--full` does nothing there.
+```markdown
+---
+title: Understanding Vector Databases
+author: Jane Dev
+url: https://medium.com/p/understanding-vector-dbs-abc123
+published: 2026-06-10
+topic: rag
+tags: [vector-databases, retrieval]
+summary: A one-paragraph TL;DR of the article.
+takeaways:
+  - Key point one.
+  - Key point two.
+archived: 2026-06-15
+---
+# Understanding Vector Databases
+
+...article body as Markdown...
+```
+
+```
+library/
+├── catalog.json   ← every article's metadata + summary (machine-readable, dedup key = url)
+├── INDEX.md       ← same list, grouped by topic, clickable links
+└── rag/
+    └── understanding-vector-databases.md
+```
+
+`catalog.json` / `INDEX.md` are rebuilt as articles are added. The article
+**URL** is the dedup key, so sync never re-captures something you already have;
+if two different articles produce the same filename, a short hash is appended so
+neither is overwritten.
+
+## Under the hood: the `medium.py` helper
+
+You won't normally run this yourself — the skill calls it — but it's just two
+operations, easy to inspect or use directly:
+
+```bash
+# Discover recent candidates for a feed (prints JSON). feed = tag:/pub:/author:
+python3 medium.py discover tag:large-language-models --limit 5
+
+# Extract one article as clean Markdown (prints to stdout)
+python3 medium.py extract "https://medium.com/p/abc123"
+```
+
+All the intelligence — reading `topics.yaml`, deciding what's new, summarizing,
+filing, indexing, answering questions — lives in `SKILL.md`. The helper only
+fetches Medium RSS and converts article HTML to Markdown.
 
 ## Authentication (only for paywalled articles)
 
-Public Medium posts archive with **no setup at all** — skip this whole section
-unless you want member-only ("paywalled") articles.
+Public Medium posts archive with **no setup at all** — skip this section unless
+you want member-only ("paywalled") articles.
 
 Member-only articles need **your own Medium session cookie**. You are a paying
-subscriber; the cookie just lets the tool fetch the exact same content your
-logged-in browser already can. Without it, paywalled articles save as a short
-stub.
+subscriber; the cookie just lets the helper fetch the exact same content your
+logged-in browser already can. Without it, paywalled articles are skipped (or
+save as a short stub).
 
 ### Step 1 — Copy your cookie from the browser
 
-The reliable way (Chrome/Edge/Firefox are all similar):
+1. Log in to <https://medium.com> and stay on a Medium page.
+2. Press **F12** → **Network** tab → **reload** the page so requests appear.
+3. Click the **top entry named `medium.com`** (the page document itself).
+4. Under **Request Headers** (not *Response*), find the line starting with
+   **`Cookie:`**.
+5. Copy the **entire** value after `Cookie:` — one long `sid=...; uid=...; ...`
+   line, semicolons and all.
 
-1. Log in to <https://medium.com> in your browser and stay on a Medium page.
-2. Press **F12** to open dev tools, click the **Network** tab, then **reload
-   the page** so requests appear.
-3. In the request list, click the **top entry whose name is `medium.com`**
-   (the page document itself — type `medium.com` in the Network filter box if
-   the list is long).
-4. In the panel that opens, find **Request Headers** (not *Response* Headers)
-   and locate the line that starts with **`Cookie:`**.
-5. Copy the **entire** value after `Cookie:` — it's one long line that looks
-   like `sid=abc...; uid=def...; ...`. Copy all of it, semicolons and all.
-
-> **Advanced alternative** (only if you can't find the Cookie header): open
-> dev tools → **Application** (Chrome) or **Storage** (Firefox) → **Cookies →
-> https://medium.com**, then hand-build the string by joining each row as
-> `name=value` with `; ` between them. This is error-prone; prefer the Network
-> method above.
-
-### Step 2 — Give the cookie to the tool (pick ONE)
+### Step 2 — Give the cookie to the helper (pick ONE)
 
 **Environment variable** (simplest, nothing saved to disk):
 ```bash
 export MEDIUM_COOKIE='sid=...; uid=...; ...'
-python3 medium_archive.py archive --tag llm        # --full now automatic
 ```
 
 **Cookie file** (kept out of git):
 ```bash
 echo 'sid=...; uid=...; ...' > cookie.txt          # cookie.txt is git-ignored
-python3 medium_archive.py archive --tag llm --cookie-file cookie.txt
 ```
 
 **config.json** (persists across runs):
@@ -113,121 +144,32 @@ python3 medium_archive.py archive --tag llm --cookie-file cookie.txt
 cp config.example.json config.json                 # then edit; git-ignored
 ```
 
-The tool looks for the cookie in this order: `--cookie` flag → `MEDIUM_COOKIE`
-env var → `--cookie-file`/`config.json` file → `cookie` in `config.json`. The
-first one it finds wins.
+The cookie is resolved in this order: `--cookie` → `MEDIUM_COOKIE` env →
+cookie file → `cookie` in `config.json`. First found wins. Treat it like a
+password: `.gitignore` excludes `config.json`, `cookie.txt`, `topics.yaml`, and
+`*.local`. The cookie is sent only on outgoing requests and is **never** written
+into saved articles.
 
-### Did it work?
-
-Archive a member-only article and check the file size — a real article is many
-paragraphs; a stub is a sentence or two. If member-only posts still save short,
-your cookie is missing or expired (re-copy it). An `HTTP 401/403` error means
-the same thing.
-
-> **Treat your cookie like a password.** This folder's `.gitignore` excludes
-> `config.json`, `cookie.txt`, and `*.local`, so secrets aren't committed. The
-> cookie is sent only on outgoing requests and is **never** written into saved
-> articles or the catalog.
-
-## Commands
-
-| Command | What it does |
-|---|---|
-| `search` | List recent articles for a tag/publication/author. **No download.** |
-| `archive` | Discover **and** save many articles into the library. |
-| `fetch` | Save **one** specific article by its URL. |
-| `list` | Print the local catalog. |
-
-**Discovery source** — `archive` and `search` each take exactly one of these
-(they're mutually exclusive):
-
-- `--tag machine-learning` → recent posts tagged *machine-learning*
-- `--publication better-programming` → recent posts from that publication
-- `--author @kentcdodds` → recent posts by that author
-
-**Common options:**
-
-| Option | Applies to | Meaning |
-|---|---|---|
-| `--limit N` | search, archive | How many recent items to take (default 10) |
-| `--full` | archive | Fetch each full page — see "When do I need `--full`?" |
-| `--topic NAME` | archive, fetch | Library subfolder to file under (default: the tag) |
-| `--url URL` | fetch | The specific article to save |
-| `--library PATH` | all | Archive root (default `./library`, or set `MEDIUM_LIBRARY`) |
-| `--cookie` / `--cookie-file` | all | Your Medium cookie (or set `MEDIUM_COOKIE`) |
-
-To grab a single article you already have the link for:
-
-```bash
-python3 medium_archive.py fetch \
-  --url "https://medium.com/p/understanding-vector-dbs-abc123" --topic ml
-```
-
-## Where everything lands
-
-Articles are organized by **topic**, which is just a subfolder name you choose
-with `--topic` (it defaults to the tag/author/publication if you omit it):
-
-```
-library/                       ← the archive root (change with --library)
-├── catalog.json               ← every article's metadata (machine-readable)
-├── INDEX.md                   ← same list, grouped by topic, clickable links
-├── ml/                        ← one folder per --topic
-│   ├── understanding-vector-databases.md
-│   └── ...
-└── llm/
-    └── ...
-```
-
-Each article is a Markdown file with YAML front matter:
-
-```markdown
----
-title: "Understanding Vector Databases"
-author: Jane Dev
-url: "https://medium.com/p/understanding-vector-dbs-abc123"
-published: 2026-06-10
-topic: ml
-tags: [machine-learning, databases]
-archived: 2026-06-15
----
-
-# Understanding Vector Databases
-
-...article body as Markdown...
-```
-
-`catalog.json` and `INDEX.md` at the library root are **rebuilt automatically**
-after every archive/fetch. The article **URL** is the dedup key: re-archiving a
-URL you already have updates its entry instead of creating a duplicate. (If two
-different articles happen to produce the same filename, a short hash is appended
-so neither is overwritten.)
+> **Did it work?** Ask the skill to archive a member-only article and check the
+> file — a real article is many paragraphs; an empty/short result means the
+> cookie is missing or expired (re-copy it). `HTTP 401/403` means the same.
 
 ## How discovery works (and its limits)
 
-Medium has no official public article API. This tool reads Medium's **RSS
+Medium has no official public article API. The helper reads Medium's **RSS
 feeds**, which expose the **most recent** posts for a tag, publication, or
 author — great for ongoing topic tracking, but **not** a deep historical
-search. To backfill specific older pieces, grab their URLs and use `fetch`.
-
-Extraction converts the article HTML to Markdown, isolating the `<article>`
-body and dropping nav/scripts/footers. If Medium changes its page markup and
-full fetches stop finding the body, the tool automatically falls back to the
-RSS content; to restore full fidelity, update the `_ArticleExtractor` class in
-`medium_archive.py`.
+search. To backfill older pieces, give the skill their URLs ("archive this
+URL"). Extraction isolates the `<article>` body and drops nav/scripts/footers;
+if Medium changes its markup, update `_ArticleExtractor` in `medium.py`.
 
 ## Being a good citizen
 
-The script identifies itself with a descriptive User-Agent and waits ~1.5s
-between requests. Keep this archive **personal** — it's for reading content you
-already pay to access, not for redistribution.
+The helper identifies itself with a descriptive User-Agent and the workflow
+paces requests (~1.5s). Keep this corpus **personal** — it's for reading content
+you already pay to access, not for redistribution.
 
-## Troubleshooting
+## Testing
 
-| Symptom | Fix |
-|---|---|
-| `HTTP error 401/403` | Cookie missing or expired — re-copy it from the browser. |
-| Member-only articles save a short stub | Add your cookie (full fetch then runs automatically), or pass `--full` with a cookie set. |
-| Tag articles save short / truncated | Add `--full` (tag RSS only carries a snippet). |
-| `no articles found` | Check the tag/handle/publication spelling; the feed may be empty. |
-| `network error` | Check connectivity; the tool does not retry automatically. |
+See [HOW-TO-TEST.md](./HOW-TO-TEST.md) for helper unit tests and manual
+skill-level checks.

@@ -1,0 +1,20 @@
+# Copy to topics.yaml and edit. topics.yaml is git-ignored.
+# Each section is optional. Run the skill's wizard ("set up my Medium topics")
+# to build this interactively.
+
+# Medium tags to follow (https://medium.com/tag/<name>)
+topics:
+  - large-language-models
+  - retrieval-augmented-generation
+  - ai-agents
+
+# Author handles to follow
+authors:
+  - "@kentcdodds"
+
+# Publication slugs to follow
+publications:
+  - better-programming
+
+# Max recent items pulled per feed during a sync (default 15)
+limit_per_feed: 15
